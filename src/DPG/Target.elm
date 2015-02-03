@@ -1,12 +1,14 @@
 module DPG.Target where
 
+import String (length)
+
 import Html (Html, br, fieldset, label, text, input)
 import Html.Events (on, targetValue)
 
 import Signal
 
 
-type alias Model = 
+type alias Model =
     { hostname : String
     , username : String
     , password : String
@@ -17,6 +19,10 @@ type Update
     | Username String
     | Password String
     | NoOp
+
+type Output
+    = SeedString String
+    | Error String
 
 emptyModel : Model
 emptyModel =
@@ -74,7 +80,9 @@ view model =
         , br [] []
         , viewPassword model
         , br [] []
-        , text <| seedString model
+        , case output model of
+            Error message -> text message
+            SeedString message -> text message
         ]
 
 updates : Signal.Channel Update
@@ -87,5 +95,22 @@ model : Signal Model
 model = Signal.foldp update emptyModel (Signal.subscribe updates)
 
 
-seedString : Model -> String
-seedString model = model.hostname ++ ":" ++ model.username ++ ":" ++ model.password
+output : Model -> Output
+output model =
+    if | length model.hostname == 0 -> Error "Please enter a hostname"
+       | length model.username == 0 -> Error "Please enter a username"
+       | length model.password == 0 -> Error "Please enter a password"
+       | otherwise -> SeedString
+            (model.hostname ++ ":" ++ model.username ++ ":" ++ model.password)
+
+
+error : Model -> Maybe String
+error model = case output model of
+    Error message -> Just message
+    _ -> Nothing
+
+
+seedString : Model -> Maybe String
+seedString model = case output model of
+    SeedString message -> Just message
+    _ -> Nothing
