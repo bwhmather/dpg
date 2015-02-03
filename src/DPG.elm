@@ -6,17 +6,9 @@ import Signal (Signal, Channel, Message)
 
 import Html (Html)
 
+import DPG.Utils (filterMap)
 import DPG.Target as Target
 
-filterMap : (a -> Maybe b) -> b -> Signal a -> Signal b
-filterMap filter default input =
-    Signal.map filter input
-    |> Signal.keepIf (\item ->
-            case item of
-                Just _ -> True
-                Nothing -> False)
-        (Just default)
-    |> Signal.map (\(Just value) -> value)
 
 type Action
     = TargetAction Target.Action
