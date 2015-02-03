@@ -74,9 +74,9 @@ viewPassword model =
 view : Model -> Html
 view model =
     fieldset []
-        [ viewUsername model
+        [ viewHostname model
         , br [] []
-        , viewHostname model
+        , viewUsername model
         , br [] []
         , viewPassword model
         , br [] []
