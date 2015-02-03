@@ -15,7 +15,7 @@ type alias Model =
     , password : String
     }
 
-type Update
+type Action
     = Hostname String
     | Username String
     | Password String
@@ -32,7 +32,7 @@ emptyModel =
     , password = ""
     }
 
-update : Update -> Model -> Model
+update : Action -> Model -> Model
 update updt model =
   case updt of
     Hostname content ->
@@ -45,7 +45,7 @@ update updt model =
         model
 
 
-viewHostname : (Update -> Signal.Message) -> Model -> Html
+viewHostname : (Action -> Signal.Message) -> Model -> Html
 viewHostname send model =
     label []
         [ text "Hostname:"
@@ -54,7 +54,7 @@ viewHostname send model =
             []
         ]
 
-viewUsername : (Update -> Signal.Message) -> Model -> Html
+viewUsername : (Action -> Signal.Message) -> Model -> Html
 viewUsername send model =
     label []
         [ text "Username:"
@@ -63,7 +63,7 @@ viewUsername send model =
             []
         ]
 
-viewPassword : (Update -> Signal.Message) -> Model -> Html
+viewPassword : (Action -> Signal.Message) -> Model -> Html
 viewPassword send model =
     label []
         [ text "Password:"
@@ -72,7 +72,7 @@ viewPassword send model =
             []
         ]
 
-view : (Update -> Signal.Message) -> Model -> Html
+view : (Action -> Signal.Message) -> Model -> Html
 view send model =
     fieldset []
         [ viewHostname send model
@@ -86,7 +86,7 @@ view send model =
             SeedString message -> text message
         ]
 
-updates : Channel Update
+updates : Channel Action
 updates = Signal.channel NoOp
 
 main : Signal Html
