@@ -6,6 +6,7 @@ import Html (Html, br, fieldset, label, text, input)
 import Html.Events (on, targetValue)
 
 import Signal
+import Signal (Signal, Channel)
 
 
 type alias Model =
@@ -44,8 +45,8 @@ update updt model =
         model
 
 
-viewHostname : Model -> Html
-viewHostname model =
+viewHostname : Channel Update -> Model -> Html
+viewHostname updates model =
     label []
         [ text "Hostname:"
         , input
@@ -53,8 +54,8 @@ viewHostname model =
             []
         ]
 
-viewUsername : Model -> Html
-viewUsername model =
+viewUsername : Channel Update -> Model -> Html
+viewUsername updates model =
     label []
         [ text "Username:"
         , input
@@ -62,8 +63,8 @@ viewUsername model =
             []
         ]
 
-viewPassword : Model -> Html
-viewPassword model =
+viewPassword : Channel Update -> Model -> Html
+viewPassword updates model =
     label []
         [ text "Password:"
         , input
@@ -71,25 +72,25 @@ viewPassword model =
             []
         ]
 
-view : Model -> Html
-view model =
+view : Channel Update -> Model -> Html
+view updates model =
     fieldset []
-        [ viewHostname model
+        [ viewHostname updates model
         , br [] []
-        , viewUsername model
+        , viewUsername updates model
         , br [] []
-        , viewPassword model
+        , viewPassword updates model
         , br [] []
         , case output model of
             Error message -> text message
             SeedString message -> text message
         ]
 
-updates : Signal.Channel Update
+updates : Channel Update
 updates = Signal.channel NoOp
 
 main : Signal Html
-main = Signal.map view model
+main = Signal.map (view updates) model
 
 model : Signal Model
 model = Signal.foldp update emptyModel (Signal.subscribe updates)
