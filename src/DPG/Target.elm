@@ -6,7 +6,7 @@ import Html (Html, br, fieldset, label, text, input)
 import Html.Events (on, targetValue)
 
 import Signal
-import Signal (Signal, Channel)
+import Signal (Signal, Channel, Message)
 
 
 type alias Model =
@@ -45,7 +45,7 @@ update updt model =
         model
 
 
-viewHostname : (Action -> Signal.Message) -> Model -> Html
+viewHostname : (Action -> Message) -> Model -> Html
 viewHostname send model =
     label []
         [ text "Hostname:"
@@ -54,7 +54,7 @@ viewHostname send model =
             []
         ]
 
-viewUsername : (Action -> Signal.Message) -> Model -> Html
+viewUsername : (Action -> Message) -> Model -> Html
 viewUsername send model =
     label []
         [ text "Username:"
@@ -63,7 +63,7 @@ viewUsername send model =
             []
         ]
 
-viewPassword : (Action -> Signal.Message) -> Model -> Html
+viewPassword : (Action -> Message) -> Model -> Html
 viewPassword send model =
     label []
         [ text "Password:"
@@ -72,7 +72,7 @@ viewPassword send model =
             []
         ]
 
-view : (Action -> Signal.Message) -> Model -> Html
+view : (Action -> Message) -> Model -> Html
 view send model =
     fieldset []
         [ viewHostname send model
