@@ -4,6 +4,7 @@ import String (length)
 
 import Html (Html, br, fieldset, label, text, input)
 import Html.Events (on, targetValue)
+import Html.Attributes (stringProperty, boolProperty)
 
 import Signal
 import Signal (Signal, Channel, Message)
@@ -50,7 +51,12 @@ viewHostname send model =
     label []
         [ text "Hostname:"
         , input
-            [ on "change" targetValue (send << Hostname) ]
+            [ on "change" targetValue (send << Hostname)
+            , boolProperty "autofocus" True
+            , stringProperty "autocorrect" "off"
+            , stringProperty "autocapitalize" "off"
+            , stringProperty "type" "text"
+            ]
             []
         ]
 
@@ -59,7 +65,11 @@ viewUsername send model =
     label []
         [ text "Username:"
         , input
-            [ on "change" targetValue (send << Username) ]
+            [ on "change" targetValue (send << Username)
+            , stringProperty "autocorrect" "off"
+            , stringProperty "autocapitalize" "off"
+            , stringProperty "type" "text"
+            ]
             []
         ]
 
@@ -68,7 +78,9 @@ viewPassword send model =
     label []
         [ text "Password:"
         , input
-            [ on "change" targetValue (send << Password) ]
+            [ on "change" targetValue (send << Password)
+            , stringProperty "type" "password"
+            ]
             []
         ]
 
