@@ -43,7 +43,7 @@ viewHostname model =
     label []
         [ text "Hostname:"
         , input
-            [ on "change" targetValue (Signal.send updates << Hostname)]
+            [ on "change" targetValue (Signal.send updates << Hostname) ]
             []
         ]
 
@@ -52,7 +52,7 @@ viewUsername model =
     label []
         [ text "Username:"
         , input
-            [ on "change" targetValue (Signal.send updates << Username)]
+            [ on "change" targetValue (Signal.send updates << Username) ]
             []
         ]
 
@@ -61,7 +61,7 @@ viewPassword model =
     label []
         [ text "Password:"
         , input
-            [ on "change" targetValue (Signal.send updates << Password)]
+            [ on "change" targetValue (Signal.send updates << Password) ]
             []
         ]
 
