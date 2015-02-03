@@ -98,16 +98,6 @@ view send model =
             SeedString message -> text message
         ]
 
-updates : Channel Action
-updates = Signal.channel NoOp
-
-main : Signal Html
-main = Signal.map (view (Signal.send updates)) model
-
-model : Signal Model
-model = Signal.foldp update emptyModel (Signal.subscribe updates)
-
-
 output : Model -> Output
 output model =
     if | length model.hostname == 0 -> Error "Please enter a hostname"
