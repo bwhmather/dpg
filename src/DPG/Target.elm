@@ -45,41 +45,41 @@ update updt model =
         model
 
 
-viewHostname : Channel Update -> Model -> Html
-viewHostname updates model =
+viewHostname : (Update -> Signal.Message) -> Model -> Html
+viewHostname send model =
     label []
         [ text "Hostname:"
         , input
-            [ on "change" targetValue (Signal.send updates << Hostname) ]
+            [ on "change" targetValue (send << Hostname) ]
             []
         ]
 
-viewUsername : Channel Update -> Model -> Html
-viewUsername updates model =
+viewUsername : (Update -> Signal.Message) -> Model -> Html
+viewUsername send model =
     label []
         [ text "Username:"
         , input
-            [ on "change" targetValue (Signal.send updates << Username) ]
+            [ on "change" targetValue (send << Username) ]
             []
         ]
 
-viewPassword : Channel Update -> Model -> Html
-viewPassword updates model =
+viewPassword : (Update -> Signal.Message) -> Model -> Html
+viewPassword send model =
     label []
         [ text "Password:"
         , input
-            [ on "change" targetValue (Signal.send updates << Password) ]
+            [ on "change" targetValue (send << Password) ]
             []
         ]
 
-view : Channel Update -> Model -> Html
-view updates model =
+view : (Update -> Signal.Message) -> Model -> Html
+view send model =
     fieldset []
-        [ viewHostname updates model
+        [ viewHostname send model
         , br [] []
-        , viewUsername updates model
+        , viewUsername send model
         , br [] []
-        , viewPassword updates model
+        , viewPassword send model
         , br [] []
         , case output model of
             Error message -> text message
@@ -90,7 +90,7 @@ updates : Channel Update
 updates = Signal.channel NoOp
 
 main : Signal Html
-main = Signal.map (view updates) model
+main = Signal.map (view (Signal.send updates)) model
 
 model : Signal Model
 model = Signal.foldp update emptyModel (Signal.subscribe updates)
