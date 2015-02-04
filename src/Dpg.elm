@@ -7,29 +7,38 @@ import Signal (Signal, Channel, Message)
 import Html (Html, div)
 
 import Dpg.Target as Target
+import Dpg.Generator as Generator
+
 
 type alias Model =
     { target : Target.Model
+    , generator : Generator.Model
     }
 
 type Action
     = TargetAction Target.Action
+    | GeneratorAction Generator.Action
     | NoOp
 
 emptyModel : Model
 emptyModel =
     { target = Target.emptyModel
+    , generator = Generator.emptyModel
     }
 
 update : Action -> Model -> Model
 update action model = case action of
-    TargetAction a -> { model | target <- Target.update a model.target }
+    TargetAction a ->
+        { model | target <- Target.update a model.target }
+    GeneratorAction a ->
+        { model | generator <- Generator.update a model.generator }
     _ -> model
 
 view : (Action -> Message) -> Model -> Html
 view send model =
-    div [] [
-        Target.view (\m -> send (TargetAction m)) model.target
+    div []
+    [ Target.view (\m -> send (TargetAction m)) model.target
+    , Generator.view (\m -> send (GeneratorAction m)) model.generator
     ]
 
 updates : Channel Action
