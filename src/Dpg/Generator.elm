@@ -1,12 +1,13 @@
 module Dpg.Generator where
 
+import Maybe
 import String (length, toInt)
 import Result
 import Result (Result (Ok, Err))
 
 import Html (Html, br, fieldset, label, text, input)
 import Html.Events (on, targetValue, targetChecked)
-import Html.Attributes (stringProperty, boolProperty)
+import Html.Attributes (stringProperty, boolProperty, value)
 
 import Signal (Message)
 
@@ -59,6 +60,8 @@ viewLength send model =
         [ text "Password length:"
         , input
             [ on "change" targetValue (send << Length << Result.toMaybe << toInt)
+            -- TODO
+            , value (toString (Maybe.withDefault 0 model.length))
             , stringProperty "type" "number"
             ]
             []
