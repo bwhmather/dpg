@@ -100,12 +100,14 @@ output : Model -> String -> Result String String
 output model seed =
     case model.length of
         Just length ->
-            if ( model.lowercase
-              || model.uppercase
-              || model.numeric
-              || model.symbols) 
-            then Ok seed
-            else Err "Must select at least one character type"
-            
+            if | not ( model.lowercase
+                    || model.uppercase
+                    || model.numeric
+                    || model.symbols) ->
+                    Err "Must select at least one character type"
+               | length < 6 ->
+                    Err "Requested output too short"
+               | otherwise ->
+                    Ok seed
         Nothing ->
-           Err "Requested output too short"
+            Err "Invalid length"
