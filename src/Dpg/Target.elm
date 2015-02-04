@@ -1,6 +1,7 @@
 module Dpg.Target where
 
 import String (length)
+import Result (Result(Ok, Err))
 
 import Html (Html, br, fieldset, label, text, input)
 import Html.Events (on, targetValue)
@@ -20,10 +21,6 @@ type Action
     | Username String
     | Password String
     | NoOp
-
-type Output
-    = SeedString String
-    | Error String
 
 emptyModel : Model
 emptyModel =
@@ -93,25 +90,15 @@ view send model =
         , viewPassword send model
         , br [] []
         , case output model of
-            Error message -> text message
-            SeedString message -> text message
+            Err message -> text message
+            Ok message -> text message
         ]
 
 
-output : Model -> Output
+output : Model -> Result String String
 output model =
-    if | length model.hostname == 0 -> Error "Please enter a hostname"
-       | length model.username == 0 -> Error "Please enter a username"
-       | length model.password == 0 -> Error "Please enter a password"
-       | otherwise -> SeedString
+    if | length model.hostname == 0 -> Err "Please enter a hostname"
+       | length model.username == 0 -> Err "Please enter a username"
+       | length model.password == 0 -> Err "Please enter a password"
+       | otherwise -> Ok
             (model.hostname ++ ":" ++ model.username ++ ":" ++ model.password)
-
-error : Model -> Maybe String
-error model = case output model of
-    Error message -> Just message
-    _ -> Nothing
-
-seedString : Model -> Maybe String
-seedString model = case output model of
-    SeedString message -> Just message
-    _ -> Nothing
