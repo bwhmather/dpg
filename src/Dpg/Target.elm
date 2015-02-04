@@ -1,4 +1,4 @@
-module DPG.Target where
+module Dpg.Target where
 
 import String (length)
 

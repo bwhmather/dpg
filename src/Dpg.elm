@@ -1,4 +1,4 @@
-module DPG where
+module Dpg where
 
 import Maybe
 import Signal
@@ -6,7 +6,7 @@ import Signal (Signal, Channel, Message)
 
 import Html (Html, div)
 
-import DPG.Target as Target
+import Dpg.Target as Target
 
 type alias Model =
     { target : Target.Model
