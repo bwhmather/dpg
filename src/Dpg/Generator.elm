@@ -11,6 +11,8 @@ import Html.Attributes (stringProperty, boolProperty, value)
 
 import Signal (Message)
 
+import Dpg.NoiseSource (Noise)
+
 
 type alias Model =
     { length : Int
@@ -101,7 +103,7 @@ view send model =
         ]
 
 
-output : Model -> String -> Result String String
+output : Model -> Noise -> Result String String
 output model seed =
     if | not ( model.lowercase
             || model.uppercase

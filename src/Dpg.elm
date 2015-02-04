@@ -1,12 +1,14 @@
 module Dpg where
 
 import Maybe
+import Result
 import Signal
 import Signal (Signal, Channel, Message)
 
 import Html (Html, div)
 
 import Dpg.Target as Target
+import Dpg.NoiseSource as Source
 import Dpg.Generator as Generator
 
 
@@ -46,6 +48,9 @@ updates = Signal.channel NoOp
 
 model : Signal Model
 model = Signal.foldp update emptyModel (Signal.subscribe updates)
+
+noiseSource : Source.NoiseSource
+noiseSource = Source.new (Signal.map (\m -> Result.toMaybe (Target.output m.target)) model)
 
 main : Signal Html
 main = Signal.map (view (Signal.send updates)) model
