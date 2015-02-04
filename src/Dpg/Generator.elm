@@ -82,7 +82,6 @@ viewCharacter name constructor send model =
             []
         ]
 
-
 view : (Action -> Message) -> Model -> Html
 view send model =
     fieldset []
