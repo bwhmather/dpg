@@ -96,10 +96,6 @@ view send model =
         , viewCharacter "numbers" Numeric send model
         , br [] []
         , viewCharacter "symbols" Symbols send model
-        , br [] []
-        , case output model "super secret seed" of
-            Err message -> text message
-            Ok password -> text password
         ]
 
 

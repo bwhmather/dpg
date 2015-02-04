@@ -91,10 +91,6 @@ view send model =
         , viewUsername send model
         , br [] []
         , viewPassword send model
-        , br [] []
-        , case output model of
-            Err message -> text message
-            Ok message -> text message
         ]
 
 
