@@ -97,6 +97,7 @@ view send model =
             SeedString message -> text message
         ]
 
+
 output : Model -> Output
 output model =
     if | length model.hostname == 0 -> Error "Please enter a hostname"
@@ -105,12 +106,10 @@ output model =
        | otherwise -> SeedString
             (model.hostname ++ ":" ++ model.username ++ ":" ++ model.password)
 
-
 error : Model -> Maybe String
 error model = case output model of
     Error message -> Just message
     _ -> Nothing
-
 
 seedString : Model -> Maybe String
 seedString model = case output model of
