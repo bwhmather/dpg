@@ -13,7 +13,7 @@ import Signal (Message)
 
 
 type alias Model =
-    { length : (Maybe Int)
+    { length : Int
     , lowercase : Bool
     , uppercase : Bool
     , numeric : Bool
@@ -21,7 +21,7 @@ type alias Model =
     }
 
 type Action
-    = Length (Maybe Int)
+    = Length Int
     | Lowercase Bool
     | Uppercase Bool
     | Numeric Bool
@@ -30,7 +30,7 @@ type Action
 
 emptyModel : Model
 emptyModel =
-    { length = Just 16
+    { length = 16
     , lowercase = True
     , uppercase = True
     , numeric = True
@@ -59,9 +59,12 @@ viewLength send model =
     label []
         [ text "Password length:"
         , input
-            [ on "change" targetValue (send << Length << Result.toMaybe << toInt)
-            -- TODO
-            , value (toString (Maybe.withDefault 0 model.length))
+            [ on "change" targetValue
+                ( send << Length
+                       << Maybe.withDefault 0
+                       << Result.toMaybe
+                       << toInt)
+            , value (toString model.length)
             , stringProperty "type" "number"
             ]
             []
@@ -101,16 +104,9 @@ view send model =
 
 output : Model -> String -> Result String String
 output model seed =
-    case model.length of
-        Just length ->
-            if | not ( model.lowercase
-                    || model.uppercase
-                    || model.numeric
-                    || model.symbols) ->
-                    Err "Must select at least one character type"
-               | length < 6 ->
-                    Err "Requested output too short"
-               | otherwise ->
-                    Ok seed
-        Nothing ->
-            Err "Invalid length"
+    if | not ( model.lowercase
+            || model.uppercase
+            || model.numeric
+            || model.symbols) -> Err "Must select at least one character type"
+       | model.length < 6 -> Err "Requested output too short"
+       | otherwise -> Ok seed
