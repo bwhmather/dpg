@@ -6,8 +6,7 @@ import Html (Html, br, fieldset, label, text, input)
 import Html.Events (on, targetValue)
 import Html.Attributes (stringProperty, boolProperty)
 
-import Signal
-import Signal (Signal, Channel, Message)
+import Signal (Message)
 
 
 type alias Model =
