@@ -6,7 +6,6 @@ import Signal (Signal, Channel, Message)
 
 import Html (Html, div)
 
-import DPG.Utils (filterMap)
 import DPG.Target as Target
 
 type alias Model =
@@ -16,9 +15,6 @@ type alias Model =
 type Action
     = TargetAction Target.Action
     | NoOp
-
-updates : Channel Action
-updates = Signal.channel NoOp
 
 emptyModel : Model
 emptyModel =
@@ -30,14 +26,17 @@ update action model = case action of
     TargetAction a -> { model | target <- Target.update a model.target }
     _ -> model
 
-model : Signal Model
-model = Signal.foldp update emptyModel (Signal.subscribe updates)
-
 view : (Action -> Message) -> Model -> Html
 view send model =
     div [] [
         Target.view (\m -> send (TargetAction m)) model.target
     ]
+
+updates : Channel Action
+updates = Signal.channel NoOp
+
+model : Signal Model
+model = Signal.foldp update emptyModel (Signal.subscribe updates)
 
 main : Signal Html
 main = Signal.map (view (Signal.send updates)) model
