@@ -29,23 +29,23 @@ defaultSettings =
     }
 
 update : Action -> Settings -> Settings
-update updt model =
-  case updt of
+update action settings =
+  case action of
     Hostname content ->
-        { model | hostname <- content }
+        { settings | hostname <- content }
     Username content ->
-        { model | username <- content }
+        { settings | username <- content }
     Password content ->
-        { model | password <- content }
+        { settings | password <- content }
 
 
 viewHostname : (Action -> Message) -> Settings -> Html
-viewHostname send model =
+viewHostname send settings =
     label []
         [ text "Hostname:"
         , input
             [ on "change" targetValue (send << Hostname)
-            , value model.hostname
+            , value settings.hostname
             , boolProperty "autofocus" True
             , stringProperty "autocorrect" "off"
             , stringProperty "autocapitalize" "off"
@@ -55,12 +55,12 @@ viewHostname send model =
         ]
 
 viewUsername : (Action -> Message) -> Settings -> Html
-viewUsername send model =
+viewUsername send settings =
     label []
         [ text "Username:"
         , input
             [ on "change" targetValue (send << Username)
-            , value model.username
+            , value settings.username
             , stringProperty "autocorrect" "off"
             , stringProperty "autocapitalize" "off"
             , stringProperty "type" "text"
@@ -69,32 +69,32 @@ viewUsername send model =
         ]
 
 viewPassword : (Action -> Message) -> Settings -> Html
-viewPassword send model =
+viewPassword send settings =
     label []
         [ text "Password:"
         , input
             [ on "change" targetValue (send << Password)
-            , value model.password
+            , value settings.password
             , stringProperty "type" "password"
             ]
             []
         ]
 
 view : (Action -> Message) -> Settings -> Html
-view send model =
+view send settings =
     fieldset []
-        [ viewHostname send model
+        [ viewHostname send settings
         , br [] []
-        , viewUsername send model
+        , viewUsername send settings
         , br [] []
-        , viewPassword send model
+        , viewPassword send settings
         ]
 
 
 output : Settings -> Result String String
-output model =
-    if | length model.hostname == 0 -> Err "Please enter a hostname"
-       | length model.username == 0 -> Err "Please enter a username"
-       | length model.password == 0 -> Err "Please enter a password"
+output settings =
+    if | length settings.hostname == 0 -> Err "Please enter a hostname"
+       | length settings.username == 0 -> Err "Please enter a username"
+       | length settings.password == 0 -> Err "Please enter a password"
        | otherwise -> Ok
-            (model.hostname ++ ":" ++ model.username ++ ":" ++ model.password)
+            (settings.hostname ++ ":" ++ settings.username ++ ":" ++ settings.password)

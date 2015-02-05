@@ -39,22 +39,22 @@ defaultSettings =
     }
 
 update : Action -> Settings -> Settings
-update updt model =
-  case updt of
+update action settings =
+  case action of
     Length content ->
-        { model | length <- content }
+        { settings | length <- content }
     Lowercase enabled ->
-        { model | lowercase <- enabled }
+        { settings | lowercase <- enabled }
     Uppercase enabled ->
-        { model | uppercase <- enabled }
+        { settings | uppercase <- enabled }
     Numeric enabled ->
-        { model | numeric <- enabled }
+        { settings | numeric <- enabled }
     Symbols enabled ->
-        { model | symbols <- enabled }
+        { settings | symbols <- enabled }
 
 
 viewLength : (Action -> Message) -> Settings -> Html
-viewLength send model =
+viewLength send settings =
     label []
         [ text "Password length:"
         , input
@@ -63,14 +63,14 @@ viewLength send model =
                        << Maybe.withDefault 0
                        << Result.toMaybe
                        << toInt)
-            , value (toString model.length)
+            , value (toString settings.length)
             , stringProperty "type" "number"
             ]
             []
         ]
 
 viewCharacter : String -> (Bool -> Action) -> (Action -> Message) -> Settings -> Html
-viewCharacter name constructor send model =
+viewCharacter name constructor send settings =
     label []
         [ text ("Enable " ++ name ++ ":")
         , input
@@ -82,25 +82,25 @@ viewCharacter name constructor send model =
         ]
 
 view : (Action -> Message) -> Settings -> Html
-view send model =
+view send settings =
     fieldset []
-        [ viewLength send model
+        [ viewLength send settings
         , br [] []
-        , viewCharacter "lowercase" Lowercase send model
+        , viewCharacter "lowercase" Lowercase send settings
         , br [] []
-        , viewCharacter "uppercase" Uppercase send model
+        , viewCharacter "uppercase" Uppercase send settings
         , br [] []
-        , viewCharacter "numbers" Numeric send model
+        , viewCharacter "numbers" Numeric send settings
         , br [] []
-        , viewCharacter "symbols" Symbols send model
+        , viewCharacter "symbols" Symbols send settings
         ]
 
 
 output : Settings -> Noise -> Result String String
-output model seed =
-    if | not ( model.lowercase
-            || model.uppercase
-            || model.numeric
-            || model.symbols) -> Err "Must select at least one character type"
-       | model.length < 6 -> Err "Requested output too short"
+output settings seed =
+    if | not ( settings.lowercase
+            || settings.uppercase
+            || settings.numeric
+            || settings.symbols) -> Err "Must select at least one character type"
+       | settings.length < 6 -> Err "Requested output too short"
        | otherwise -> Ok seed

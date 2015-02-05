@@ -31,41 +31,41 @@ defaultSettings =
     }
 
 update : Action -> Settings -> Settings
-update action model = case action of
+update action settings = case action of
     TargetAction a ->
-        { model | target <- Target.update a model.target }
+        { settings | target <- Target.update a settings.target }
     GeneratorAction a ->
-        { model | generator <- Generator.update a model.generator }
-    _ -> model
+        { settings | generator <- Generator.update a settings.generator }
+    _ -> settings
 
 view : (Action -> Message) -> Settings -> Result String String -> Html
-view send model output =
+view send settings output =
     div []
-    [ Target.view (\m -> send (TargetAction m)) model.target
+    [ Target.view (\m -> send (TargetAction m)) settings.target
     , case output of
         Ok password -> Html.text ("password: " ++ password)
         Err message -> Html.text ("error: " ++ message)
-    , Generator.view (\m -> send (GeneratorAction m)) model.generator
+    , Generator.view (\m -> send (GeneratorAction m)) settings.generator
     ]
 
 updates : Channel Action
 updates = Signal.channel NoOp
 
-model : Signal Settings
-model = Signal.foldp update defaultSettings (Signal.subscribe updates)
+settings : Signal Settings
+settings = Signal.foldp update defaultSettings (Signal.subscribe updates)
 
 noiseSource : Source.NoiseSource
-noiseSource = Source.new (Signal.map (\m -> Result.toMaybe (Target.output m.target)) model)
+noiseSource = Source.new (Signal.map (\m -> Result.toMaybe (Target.output m.target)) settings)
 
 
 updateOutput : Settings -> Source.Output -> Result String String
-updateOutput model noiseOutput = case noiseOutput of
-    Source.Ok noise -> Generator.output model.generator noise
+updateOutput settings noiseOutput = case noiseOutput of
+    Source.Ok noise -> Generator.output settings.generator noise
     _ -> Err "TODO"
 
 output : Signal (Result String String)
-output = Signal.map2 updateOutput model (Source.status noiseSource)
+output = Signal.map2 updateOutput settings (Source.status noiseSource)
 
 
 main : Signal Html
-main = Signal.map2 (view (Signal.send updates)) model output
+main = Signal.map2 (view (Signal.send updates)) settings output
