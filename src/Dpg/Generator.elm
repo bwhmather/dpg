@@ -14,7 +14,7 @@ import Signal (Message)
 import Dpg.NoiseSource (Noise)
 
 
-type alias Model =
+type alias Settings =
     { length : Int
     , lowercase : Bool
     , uppercase : Bool
@@ -30,8 +30,8 @@ type Action
     | Symbols Bool
     | NoOp
 
-emptyModel : Model
-emptyModel =
+defaultSettings : Settings
+defaultSettings =
     { length = 16
     , lowercase = True
     , uppercase = True
@@ -39,7 +39,7 @@ emptyModel =
     , symbols = True
     }
 
-update : Action -> Model -> Model
+update : Action -> Settings -> Settings
 update updt model =
   case updt of
     Length content ->
@@ -56,7 +56,7 @@ update updt model =
         model
 
 
-viewLength : (Action -> Message) -> Model -> Html
+viewLength : (Action -> Message) -> Settings -> Html
 viewLength send model =
     label []
         [ text "Password length:"
@@ -72,7 +72,7 @@ viewLength send model =
             []
         ]
 
-viewCharacter : String -> (Bool -> Action) -> (Action -> Message) -> Model -> Html
+viewCharacter : String -> (Bool -> Action) -> (Action -> Message) -> Settings -> Html
 viewCharacter name constructor send model =
     label []
         [ text ("Enable " ++ name ++ ":")
@@ -84,7 +84,7 @@ viewCharacter name constructor send model =
             []
         ]
 
-view : (Action -> Message) -> Model -> Html
+view : (Action -> Message) -> Settings -> Html
 view send model =
     fieldset []
         [ viewLength send model
@@ -99,7 +99,7 @@ view send model =
         ]
 
 
-output : Model -> Noise -> Result String String
+output : Settings -> Noise -> Result String String
 output model seed =
     if | not ( model.lowercase
             || model.uppercase

@@ -14,9 +14,9 @@ import Dpg.NoiseSource as Source
 import Dpg.Generator as Generator
 
 
-type alias Model =
-    { target : Target.Model
-    , generator : Generator.Model
+type alias Settings =
+    { target : Target.Settings
+    , generator : Generator.Settings
     }
 
 type Action
@@ -24,13 +24,13 @@ type Action
     | GeneratorAction Generator.Action
     | NoOp
 
-emptyModel : Model
-emptyModel =
-    { target = Target.emptyModel
-    , generator = Generator.emptyModel
+defaultSettings : Settings
+defaultSettings =
+    { target = Target.defaultSettings
+    , generator = Generator.defaultSettings
     }
 
-update : Action -> Model -> Model
+update : Action -> Settings -> Settings
 update action model = case action of
     TargetAction a ->
         { model | target <- Target.update a model.target }
@@ -38,7 +38,7 @@ update action model = case action of
         { model | generator <- Generator.update a model.generator }
     _ -> model
 
-view : (Action -> Message) -> Model -> Result String String -> Html
+view : (Action -> Message) -> Settings -> Result String String -> Html
 view send model output =
     div []
     [ Target.view (\m -> send (TargetAction m)) model.target
@@ -51,14 +51,14 @@ view send model output =
 updates : Channel Action
 updates = Signal.channel NoOp
 
-model : Signal Model
-model = Signal.foldp update emptyModel (Signal.subscribe updates)
+model : Signal Settings
+model = Signal.foldp update defaultSettings (Signal.subscribe updates)
 
 noiseSource : Source.NoiseSource
 noiseSource = Source.new (Signal.map (\m -> Result.toMaybe (Target.output m.target)) model)
 
 
-updateOutput : Model -> Source.Output -> Result String String
+updateOutput : Settings -> Source.Output -> Result String String
 updateOutput model noiseOutput = case noiseOutput of
     Source.Ok noise -> Generator.output model.generator noise
     _ -> Err "TODO"

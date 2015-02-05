@@ -10,7 +10,7 @@ import Html.Attributes (stringProperty, boolProperty, value)
 import Signal (Message)
 
 
-type alias Model =
+type alias Settings =
     { hostname : String
     , username : String
     , password : String
@@ -22,14 +22,14 @@ type Action
     | Password String
     | NoOp
 
-emptyModel : Model
-emptyModel =
+defaultSettings : Settings
+defaultSettings =
     { hostname = ""
     , username = ""
     , password = ""
     }
 
-update : Action -> Model -> Model
+update : Action -> Settings -> Settings
 update updt model =
   case updt of
     Hostname content ->
@@ -42,7 +42,7 @@ update updt model =
         model
 
 
-viewHostname : (Action -> Message) -> Model -> Html
+viewHostname : (Action -> Message) -> Settings -> Html
 viewHostname send model =
     label []
         [ text "Hostname:"
@@ -57,7 +57,7 @@ viewHostname send model =
             []
         ]
 
-viewUsername : (Action -> Message) -> Model -> Html
+viewUsername : (Action -> Message) -> Settings -> Html
 viewUsername send model =
     label []
         [ text "Username:"
@@ -71,7 +71,7 @@ viewUsername send model =
             []
         ]
 
-viewPassword : (Action -> Message) -> Model -> Html
+viewPassword : (Action -> Message) -> Settings -> Html
 viewPassword send model =
     label []
         [ text "Password:"
@@ -83,7 +83,7 @@ viewPassword send model =
             []
         ]
 
-view : (Action -> Message) -> Model -> Html
+view : (Action -> Message) -> Settings -> Html
 view send model =
     fieldset []
         [ viewHostname send model
@@ -94,7 +94,7 @@ view send model =
         ]
 
 
-output : Model -> Result String String
+output : Settings -> Result String String
 output model =
     if | length model.hostname == 0 -> Err "Please enter a hostname"
        | length model.username == 0 -> Err "Please enter a username"
