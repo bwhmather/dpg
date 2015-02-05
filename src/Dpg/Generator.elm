@@ -28,7 +28,6 @@ type Action
     | Uppercase Bool
     | Numeric Bool
     | Symbols Bool
-    | NoOp
 
 defaultSettings : Settings
 defaultSettings =
@@ -52,8 +51,6 @@ update updt model =
         { model | numeric <- enabled }
     Symbols enabled ->
         { model | symbols <- enabled }
-    NoOp ->
-        model
 
 
 viewLength : (Action -> Message) -> Settings -> Html

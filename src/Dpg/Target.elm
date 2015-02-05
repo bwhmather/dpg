@@ -20,7 +20,6 @@ type Action
     = Hostname String
     | Username String
     | Password String
-    | NoOp
 
 defaultSettings : Settings
 defaultSettings =
@@ -38,8 +37,6 @@ update updt model =
         { model | username <- content }
     Password content ->
         { model | password <- content }
-    NoOp ->
-        model
 
 
 viewHostname : (Action -> Message) -> Settings -> Html
