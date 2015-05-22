@@ -39,12 +39,12 @@ update action settings =
         { settings | password <- content }
 
 
-viewHostname : (Action -> Message) -> Settings -> Html
-viewHostname send settings =
+viewHostname : Signal.Address Action -> Settings -> Html
+viewHostname address settings =
     label []
         [ text "Hostname:"
         , input
-            [ on "change" targetValue (send << Hostname)
+            [ on "change" targetValue (Signal.message address << Hostname)
             , value settings.hostname
             , boolProperty "autofocus" True
             , stringProperty "autocorrect" "off"
@@ -54,12 +54,12 @@ viewHostname send settings =
             []
         ]
 
-viewUsername : (Action -> Message) -> Settings -> Html
-viewUsername send settings =
+viewUsername : Signal.Address Action -> Settings -> Html
+viewUsername address settings =
     label []
         [ text "Username:"
         , input
-            [ on "change" targetValue (send << Username)
+            [ on "change" targetValue (Signal.message address << Username)
             , value settings.username
             , stringProperty "autocorrect" "off"
             , stringProperty "autocapitalize" "off"
@@ -68,26 +68,26 @@ viewUsername send settings =
             []
         ]
 
-viewPassword : (Action -> Message) -> Settings -> Html
-viewPassword send settings =
+viewPassword : Signal.Address Action -> Settings -> Html
+viewPassword address settings =
     label []
         [ text "Password:"
         , input
-            [ on "change" targetValue (send << Password)
+            [ on "change" targetValue (Signal.message address << Password)
             , value settings.password
             , stringProperty "type" "password"
             ]
             []
         ]
 
-view : (Action -> Message) -> Settings -> Html
-view send settings =
+view : Signal.Address Action -> Settings -> Html
+view address settings =
     fieldset []
-        [ viewHostname send settings
+        [ viewHostname address settings
         , br [] []
-        , viewUsername send settings
+        , viewUsername address settings
         , br [] []
-        , viewPassword send settings
+        , viewPassword address settings
         ]
 
 

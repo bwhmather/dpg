@@ -53,13 +53,14 @@ update action settings =
         { settings | symbols <- enabled }
 
 
-viewLength : (Action -> Message) -> Settings -> Html
-viewLength send settings =
+viewLength : Signal.Address Action -> Settings -> Html
+viewLength address settings =
     label []
         [ text "Password length:"
         , input
             [ on "change" targetValue
-                ( send << Length
+                ( Signal.message address
+                       << Length
                        << Maybe.withDefault 0
                        << Result.toMaybe
                        << toInt)
@@ -69,30 +70,30 @@ viewLength send settings =
             []
         ]
 
-viewCharacter : String -> (Bool -> Action) -> (Action -> Message) -> Settings -> Html
-viewCharacter name constructor send settings =
+viewCharacter : String -> Signal.Address Bool -> Settings -> Html
+viewCharacter name address settings =
     label []
         [ text ("Enable " ++ name ++ ":")
         , input
-            [ on "change" targetChecked (send << constructor)
+            [ on "change" targetChecked (Signal.message address)
             , stringProperty "type" "checkbox"
             , stringProperty "checked" "checked"
             ]
             []
         ]
 
-view : (Action -> Message) -> Settings -> Html
-view send settings =
+view : Signal.Address Action -> Settings -> Html
+view address settings =
     fieldset []
-        [ viewLength send settings
+        [ viewLength address settings
         , br [] []
-        , viewCharacter "lowercase" Lowercase send settings
+        , viewCharacter "lowercase" (Signal.forwardTo address Lowercase) settings
         , br [] []
-        , viewCharacter "uppercase" Uppercase send settings
+        , viewCharacter "uppercase" (Signal.forwardTo address Uppercase) settings
         , br [] []
-        , viewCharacter "numbers" Numeric send settings
+        , viewCharacter "numbers" (Signal.forwardTo address Numeric) settings
         , br [] []
-        , viewCharacter "symbols" Symbols send settings
+        , viewCharacter "symbols" (Signal.forwardTo address Symbols) settings
         ]
 
 

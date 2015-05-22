@@ -4,7 +4,7 @@ import Maybe
 import Result
 import Result exposing (Result (Ok, Err))
 import Signal
-import Signal exposing (Signal, Channel, Message)
+import Signal exposing (Signal, Mailbox, Message)
 
 import Html
 import Html exposing (Html, div)
@@ -38,34 +38,30 @@ update action settings = case action of
         { settings | generator <- Generator.update a settings.generator }
     _ -> settings
 
-view : (Action -> Message) -> Settings -> Result String String -> Html
-view send settings output =
+view : Signal.Address Action -> Settings -> Result String String -> Html
+view address settings output =
     div []
-    [ Target.view (\m -> send (TargetAction m)) settings.target
+    [ Target.view (Signal.forwardTo address TargetAction) settings.target
     , case output of
         Ok password -> Html.text ("password: " ++ password)
         Err message -> Html.text ("error: " ++ message)
-    , Generator.view (\m -> send (GeneratorAction m)) settings.generator
+    , Generator.view (Signal.forwardTo address GeneratorAction) settings.generator
     ]
 
-updates : Channel Action
-updates = Signal.channel NoOp
+--noiseSource : Source.NoiseSource
+--noiseSource = Source.new (Signal.map (\m -> Result.toMaybe (Target.output m.target)) settings)
+
+generatePassword : Settings -> Result String String
+generatePassword settings = Target.output settings.target
+
+actions : Mailbox Action
+actions  = Signal.mailbox NoOp
 
 settings : Signal Settings
-settings = Signal.foldp update defaultSettings (Signal.subscribe updates)
-
-noiseSource : Source.NoiseSource
-noiseSource = Source.new (Signal.map (\m -> Result.toMaybe (Target.output m.target)) settings)
-
-
-updateOutput : Settings -> Source.Output -> Result String String
-updateOutput settings noiseOutput = case noiseOutput of
-    Source.Ok noise -> Generator.output settings.generator noise
-    _ -> Err "TODO"
+settings = Signal.foldp update defaultSettings actions.signal
 
 output : Signal (Result String String)
-output = Signal.map2 updateOutput settings (Source.status noiseSource)
-
+output = Signal.map generatePassword settings
 
 main : Signal Html
-main = Signal.map2 (view (Signal.send updates)) settings output
+main = Signal.map2 (view actions.address) settings output
