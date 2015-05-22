@@ -1,17 +1,17 @@
 module Dpg.Generator where
 
 import Maybe
-import String (length, toInt)
+import String exposing (length, toInt)
 import Result
-import Result (Result (Ok, Err))
+import Result exposing (Result (Ok, Err))
 
-import Html (Html, br, fieldset, label, text, input)
-import Html.Events (on, targetValue, targetChecked)
-import Html.Attributes (stringProperty, boolProperty, value)
+import Html exposing (Html, br, fieldset, label, text, input)
+import Html.Events exposing (on, targetValue, targetChecked)
+import Html.Attributes exposing (stringProperty, boolProperty, value)
 
-import Signal (Message)
+import Signal exposing (Message)
 
-import Dpg.NoiseSource (Noise)
+import Dpg.NoiseSource exposing (Noise)
 
 
 type alias Settings =

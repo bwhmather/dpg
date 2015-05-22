@@ -1,13 +1,13 @@
 module Dpg.Target where
 
-import String (length)
-import Result (Result(Ok, Err))
+import String exposing (length)
+import Result exposing (Result(Ok, Err))
 
-import Html (Html, br, fieldset, label, text, input)
-import Html.Events (on, targetValue)
-import Html.Attributes (stringProperty, boolProperty, value)
+import Html exposing (Html, br, fieldset, label, text, input)
+import Html.Events exposing (on, targetValue)
+import Html.Attributes exposing (stringProperty, boolProperty, value)
 
-import Signal (Message)
+import Signal exposing (Message)
 
 
 type alias Settings =

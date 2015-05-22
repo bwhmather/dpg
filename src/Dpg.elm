@@ -2,12 +2,12 @@ module Dpg where
 
 import Maybe
 import Result
-import Result (Result (Ok, Err))
+import Result exposing (Result (Ok, Err))
 import Signal
-import Signal (Signal, Channel, Message)
+import Signal exposing (Signal, Channel, Message)
 
 import Html
-import Html (Html, div)
+import Html exposing (Html, div)
 
 import Dpg.Target as Target
 import Dpg.NoiseSource as Source

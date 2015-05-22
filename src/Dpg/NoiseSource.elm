@@ -1,8 +1,8 @@
 module Dpg.NoiseSource where
 
-import String (toUpper)
+import String exposing (toUpper)
 import Signal
-import Time (delay, second)
+import Time exposing (delay, second)
 
 type alias Noise = String
 type NoiseSource = NoiseSource (Signal Output)
