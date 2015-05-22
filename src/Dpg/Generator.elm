@@ -97,11 +97,11 @@ view address settings =
         ]
 
 
-output : Settings -> Noise -> Result String String
-output settings seed =
+output : Settings -> Result String (String -> String)
+output settings =
     if | not ( settings.lowercase
             || settings.uppercase
             || settings.numeric
             || settings.symbols) -> Err "Must select at least one character type"
        | settings.length < 6 -> Err "Requested output too short"
-       | otherwise -> Ok seed
+       | otherwise -> Ok (\ seed -> "garble(" ++ seed ++ ")")

@@ -52,7 +52,11 @@ view address settings output =
 --noiseSource = Source.new (Signal.map (\m -> Result.toMaybe (Target.output m.target)) settings)
 
 generatePassword : Settings -> Result String String
-generatePassword settings = Target.output settings.target
+generatePassword settings
+    = Result.map2 (\ seed generator -> generator seed)
+        (Target.output settings.target)
+        (Generator.output settings.generator)
+
 
 actions : Mailbox Action
 actions  = Signal.mailbox NoOp
