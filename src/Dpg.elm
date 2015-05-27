@@ -7,7 +7,7 @@ import Signal
 import Signal exposing (Signal, Mailbox, Message)
 
 import Html
-import Html exposing (Html, div)
+import Html exposing (Html, div, fieldset, legend, text)
 
 import Dpg.Target as Target
 import Dpg.NoiseSource as Source
@@ -42,9 +42,12 @@ view : Signal.Address Action -> Settings -> Result String String -> Html
 view address settings output =
     div []
     [ Target.view (Signal.forwardTo address TargetAction) settings.target
-    , case output of
-        Ok password -> Html.text ("password: " ++ password)
-        Err message -> Html.text ("error: " ++ message)
+    , fieldset []
+      [ legend [] [text "Output"]
+      , case output of
+          Ok password -> Html.text ("password: " ++ password)
+          Err message -> Html.text ("error: " ++ message)
+      ]
     , Generator.view (Signal.forwardTo address GeneratorAction) settings.generator
     ]
 

@@ -3,7 +3,7 @@ module Dpg.Target where
 import String exposing (length)
 import Result exposing (Result(Ok, Err))
 
-import Html exposing (Html, br, fieldset, label, text, input)
+import Html exposing (Html, br, fieldset, legend, label, text, input)
 import Html.Events exposing (on, targetValue)
 import Html.Attributes exposing (stringProperty, boolProperty, value)
 
@@ -83,10 +83,9 @@ viewPassword address settings =
 view : Signal.Address Action -> Settings -> Html
 view address settings =
     fieldset []
-        [ viewHostname address settings
-        , br [] []
+        [ legend [] [text "Login Details"]
+        , viewHostname address settings
         , viewUsername address settings
-        , br [] []
         , viewPassword address settings
         ]
 

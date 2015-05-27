@@ -5,7 +5,7 @@ import String exposing (length, toInt)
 import Result
 import Result exposing (Result (Ok, Err))
 
-import Html exposing (Html, br, fieldset, label, text, input)
+import Html exposing (Html, br, fieldset, legend, label, text, input)
 import Html.Events exposing (on, targetValue, targetChecked)
 import Html.Attributes exposing (stringProperty, boolProperty, value)
 
@@ -85,14 +85,11 @@ viewCharacter name address settings =
 view : Signal.Address Action -> Settings -> Html
 view address settings =
     fieldset []
-        [ viewLength address settings
-        , br [] []
+        [ legend [] [text "Options"]
+        , viewLength address settings
         , viewCharacter "lowercase" (Signal.forwardTo address Lowercase) settings
-        , br [] []
         , viewCharacter "uppercase" (Signal.forwardTo address Uppercase) settings
-        , br [] []
         , viewCharacter "numbers" (Signal.forwardTo address Numeric) settings
-        , br [] []
         , viewCharacter "symbols" (Signal.forwardTo address Symbols) settings
         ]
 
