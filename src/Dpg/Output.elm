@@ -3,20 +3,31 @@ module Dpg.Output where
 import Html exposing (Html, fieldset, legend, text)
 
 
-type Output
+type Status
     = NoResult
     | Progress Float
     | Result String
     | Error String
 
 
-view : Output -> Html
-view output =
+viewPassword : Status -> Html
+viewPassword status =
+    case status of
+      Result password -> Html.text password
+      _ -> Html.text ""
+
+viewStatus : Status -> Html
+viewStatus status =
+    case status of
+      NoResult -> Html.text "Please enter master password and site name"
+      Progress progress -> Html.text ("Generating password: " ++ (toString (100 * progress)) ++ "%")
+      Result _ -> Html.text ("Password generated succesfully")
+      Error message -> Html.text ("Error: " ++ message)
+
+view : Status -> Html
+view status =
   fieldset []
     [ legend [] [text "Output"]
-    , case output of
-        NoResult -> Html.text "empty"
-        Progress progress -> Html.text ("progress: " ++ (toString (100 * progress)) ++ "%")
-        Result password -> Html.text ("password: " ++ password)
-        Error message -> Html.text ("error: " ++ message)
+    , viewPassword status
+    , viewStatus status
     ]

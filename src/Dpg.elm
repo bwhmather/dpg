@@ -45,7 +45,7 @@ update action settings =
 
 
 -- Views
-view : Signal.Address Action -> Settings -> Output.Output -> Html
+view : Signal.Address Action -> Settings -> Output.Status -> Html
 view address settings output =
     div []
     [ Target.view (Signal.forwardTo address TargetAction) settings.target
@@ -68,7 +68,7 @@ generateSeed settings =
 
 --generatePassword : Settings -> Source.Output -> Result String String
 
-generateOutput : Settings -> Source.Output -> Output.Output
+generateOutput : Settings -> Source.Output -> Output.Status
 generateOutput settings sourceOut =
     case sourceOut of
       Source.Progress progress -> Output.Progress progress
@@ -99,7 +99,7 @@ noiseRequests = Signal.map (\ seed -> case seed of
 noise : Signal Source.Output
 noise = Source.new noiseRequests
 
-output : Signal Output.Output
+output : Signal Output.Status
 output = Signal.map2 generateOutput settings noise
 
 main : Signal Html
