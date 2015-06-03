@@ -38,6 +38,8 @@ Elm.Native.WebWorker.make = function(elm) {
 
         function take1(x,y) { return x }
 
+        elm.notify(responses.id, {ctor: 'Waiting'});
+
         return A3(
             Signal.map2, F2(take1),
             responses,
@@ -46,4 +48,3 @@ Elm.Native.WebWorker.make = function(elm) {
     }
     return elm.Native.WebWorker.values = { spawn: F2(spawn) };
 };
-
