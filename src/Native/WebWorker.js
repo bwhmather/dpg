@@ -13,7 +13,8 @@ Elm.Native.WebWorker.make = function(elm) {
     var List = Elm.Native.List.make(elm);
 
     function spawn(url, requests) {
-        var responses = NS.input({ctor: 'Waiting'});
+        var responses = NS.input();
+        elm.notify(responses.id, {ctor: 'Waiting'});
 
         if (!window.Worker) {
             elm.notify(responses.id, {ctor: 'Error', _0: "webworkers not supported"});
@@ -37,8 +38,6 @@ Elm.Native.WebWorker.make = function(elm) {
         };
 
         function take1(x,y) { return x }
-
-        elm.notify(responses.id, {ctor: 'Waiting'});
 
         return A3(
             Signal.map2, F2(take1),
