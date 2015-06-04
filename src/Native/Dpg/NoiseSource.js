@@ -36,7 +36,7 @@ Elm.Native.Dpg.NoiseSource.make = function(elm) {
                 break;
               case 'completed':
                 w = undefined;
-                elm.notify(response.id, {ctor: 'NotifyCompleted', _0: event.data['result']});
+                elm.notify(responses.id, {ctor: 'NotifyCompleted', _0: event.data['result']});
                 break;
               case 'error':
               default:
@@ -56,7 +56,7 @@ Elm.Native.Dpg.NoiseSource.make = function(elm) {
                     w.terminate();
                     w = undefined;
                 }
-                w = new Worker('worker.js');
+                w = new Worker('/assets/worker.js');
                 w.onmessage = onmessage;
                 w.onerror = onerror;
                 w.postMessage(req._0);
