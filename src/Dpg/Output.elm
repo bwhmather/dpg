@@ -1,6 +1,7 @@
 module Dpg.Output where
 
 import Html exposing (Html, fieldset, legend, text)
+import Html.Attributes exposing (value)
 
 
 type Status
@@ -13,7 +14,7 @@ type Status
 viewPassword : Status -> Html
 viewPassword status =
     case status of
-      Result password -> Html.text password
+      Result password -> Html.node "output" [] [Html.text password]
       _ -> Html.text ""
 
 viewStatus : Status -> Html
