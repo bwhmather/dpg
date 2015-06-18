@@ -56,7 +56,7 @@ Elm.Native.Dpg.NoiseSource.make = function(elm) {
                     w.terminate();
                     w = undefined;
                 }
-                w = new Worker('/assets/worker.js');
+                w = new Worker('/assets/js/worker.js');
                 w.onmessage = onmessage;
                 w.onerror = onerror;
                 w.postMessage(req._0);
