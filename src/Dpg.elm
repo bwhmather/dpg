@@ -58,9 +58,9 @@ view address settings output =
 generateSeed : Settings -> Result String Source.Seed
 generateSeed settings =
     Result.map2 (\ target generator ->
-        { password = "asdf"
-        , salt = "asdf"
-        , bytes = 4
+        { password = target.password
+        , salt = target.salt
+        , bytes = 8
         })
       (Target.output settings.target)
       (Generator.output settings.generator)
