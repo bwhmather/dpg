@@ -54,7 +54,6 @@ Elm.Native.Dpg.NoiseSource.make = function(elm) {
               case 'Request':
                 if (w) {
                     w.terminate();
-                    w = undefined;
                 }
                 w = new Worker('/assets/js/worker.js');
                 w.onmessage = onmessage;
@@ -62,6 +61,11 @@ Elm.Native.Dpg.NoiseSource.make = function(elm) {
                 w.postMessage(req._0);
                 break;
               case 'Nothing':
+                if (w) {
+                    w.terminate();
+                    w = undefined;
+                }
+                break;
             }
         };
 
