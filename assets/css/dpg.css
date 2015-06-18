@@ -34,11 +34,11 @@ body {
     line-height: 2.4;
 }
 
-input {
+input, output {
     font-size: 12px;
 }
 
-.error, .progress, input {
+.error, .progress, input, output {
     display: inline-block;
     /* XXX this value is hardcoded for input boxes by firefox XXX
        change only if font size is changed */
@@ -70,7 +70,7 @@ label .checkbox {
 
 /** unlabelled boxes **/
 /* with borders and padding */
-input, select, .error {
+input, output, select, .error {
     width: 338px
 }
 
@@ -112,7 +112,7 @@ label .checkbox {
 
 
 
-input, select, .error {
+input, output, select, .error {
     border: solid 1px black;
     padding: 0 5px 0 5px;
     background: white;

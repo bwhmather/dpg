@@ -5,7 +5,7 @@ import String exposing (length, toInt)
 import Result
 import Result exposing (Result (Ok, Err))
 
-import Html exposing (Html, br, fieldset, legend, label, text, input)
+import Html exposing (Html, br, fieldset, legend, label, text, input, span)
 import Html.Events exposing (on, targetValue, targetChecked)
 import Html.Attributes exposing (stringProperty, boolProperty, value)
 
@@ -81,6 +81,7 @@ viewCharacter name address settings =
       , stringProperty "checked" "checked"
       ]
       []
+    , span [] []
     ]
 
 view : Signal.Address Action -> Settings -> Html
