@@ -13,9 +13,10 @@ type Status
 
 viewPassword : Status -> Html
 viewPassword status =
-    case status of
-      Result password -> node "output" [] [text password]
-      _ -> text ""
+    node "output" []
+      (case status of
+        Result password -> [text password]
+        _ -> [])
 
 viewStatus : Status -> Html
 viewStatus status =
