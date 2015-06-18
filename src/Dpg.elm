@@ -70,11 +70,13 @@ generateSeed settings =
 
 generateOutput : Settings -> Source.Output -> Output.Status
 generateOutput settings sourceOut =
-    case sourceOut of
-      Source.Progress progress -> Output.Progress progress
-      Source.Result noise -> Output.Result noise
-      Source.Error msg -> Output.Error msg
-      Source.NoResult -> Output.NoResult
+    case Generator.output settings.generator of
+      Err msg -> Output.Error msg
+      Ok generator -> case sourceOut of
+        Source.Progress progress -> Output.Progress progress
+        Source.Result noise -> Output.Result (generator noise)
+        Source.Error msg -> Output.Error msg
+        Source.NoResult -> Output.NoResult
 
 
 --- Mailboxes
