@@ -11,25 +11,25 @@ import Html exposing (Html, div)
 
 import Dpg.Target as Target
 import Dpg.NoiseSource as Source
-import Dpg.Generator as Generator
+import Dpg.Renderer as Renderer
 import Dpg.Output as Output
 
 
 type alias Settings =
     { target : Target.Settings
-    , generator : Generator.Settings
+    , renderer : Renderer.Settings
     }
 
 type Action
     = TargetAction Target.Action
-    | GeneratorAction Generator.Action
+    | RendererAction Renderer.Action
     | NoOp
 
 
 defaultSettings : Settings
 defaultSettings =
     { target = Target.defaultSettings
-    , generator = Generator.defaultSettings
+    , renderer = Renderer.defaultSettings
     }
 
 
@@ -39,8 +39,8 @@ update action settings =
     case action of
       TargetAction a ->
         { settings | target <- Target.update a settings.target }
-      GeneratorAction a ->
-        { settings | generator <- Generator.update a settings.generator }
+      RendererAction a ->
+        { settings | renderer <- Renderer.update a settings.renderer }
       _ -> settings
 
 
@@ -50,31 +50,31 @@ view address settings output =
     div []
     [ Target.view (Signal.forwardTo address TargetAction) settings.target
     , Output.view output
-    , Generator.view (Signal.forwardTo address GeneratorAction) settings.generator
+    , Renderer.view (Signal.forwardTo address RendererAction) settings.renderer
     ]
 
 
 -- Filter functions
 generateSeed : Settings -> Result String Source.Seed
 generateSeed settings =
-    Result.map2 (\ target generator ->
+    Result.map2 (\ target renderer ->
         { password = target.password
         , salt = target.salt
         , bytes = 8
         })
       (Target.output settings.target)
-      (Generator.output settings.generator)
+      (Renderer.output settings.renderer)
 
 
 --generatePassword : Settings -> Source.Output -> Result String String
 
 generateOutput : Settings -> Source.Output -> Output.Status
 generateOutput settings sourceOut =
-    case Generator.output settings.generator of
+    case Renderer.output settings.renderer of
       Err msg -> Output.Error msg
-      Ok generator -> case sourceOut of
+      Ok renderer -> case sourceOut of
         Source.Progress progress -> Output.Progress progress
-        Source.Result noise -> Output.Result (generator noise)
+        Source.Result noise -> Output.Result (renderer noise)
         Source.Error msg -> Output.Error msg
         Source.NoResult -> Output.NoResult
 

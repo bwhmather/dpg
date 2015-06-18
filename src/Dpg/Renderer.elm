@@ -1,4 +1,4 @@
-module Dpg.Generator where
+module Dpg.Renderer where
 
 import Maybe
 import String exposing (length, toInt)
