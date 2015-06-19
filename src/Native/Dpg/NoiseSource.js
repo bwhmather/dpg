@@ -24,8 +24,19 @@ Elm.Native.Dpg.NoiseSource.make = function(elm) {
 
         var w;
 
-        onmessage = function(event) {
+        function kill_worker() {
+            if (w) {
+                w.terminate();
+                w = undefined;
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        function onmessage(event) {
             /* Ignore message from old workers */
+            /* TODO old workers should have been killed.  Kill them again? */
             if (event.target !== w) {
                 return;
             }
@@ -39,12 +50,16 @@ Elm.Native.Dpg.NoiseSource.make = function(elm) {
                 elm.notify(responses.id, {ctor: 'NotifyCompleted', _0: event.data['result']});
                 break;
               case 'error':
+                elm.notify(responses.id, {ctor: 'NotifyError', _0: event.data['message']});
+                kill_worker();
+                break;
               default:
-                // TODO
+                elm.notify(responses.id, {ctor: 'NotifyError', _0: 'unknown message from worker'});
+                kill_worker();
             }
         };
 
-        onerror = function(event) {
+        function onerror(event) {
             elm.notify(responses.id, {ctor: 'NotifyError', _0: event.message});
         };
 
@@ -52,19 +67,14 @@ Elm.Native.Dpg.NoiseSource.make = function(elm) {
 
             switch (req.ctor) {
               case 'Request':
-                if (w) {
-                    w.terminate();
-                }
+                kill_worker();
                 w = new Worker('/assets/js/worker.js');
                 w.onmessage = onmessage;
                 w.onerror = onerror;
                 w.postMessage(req._0);
                 break;
               case 'Nothing':
-                if (w) {
-                    w.terminate();
-                    w = undefined;
-                }
+                kill_worker();
                 break;
             }
         };
