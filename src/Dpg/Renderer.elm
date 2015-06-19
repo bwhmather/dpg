@@ -11,7 +11,7 @@ import Html.Attributes exposing (stringProperty, boolProperty, value)
 
 import Signal exposing (Message)
 
-import Dpg.NoiseSource exposing (Noise)
+import Dpg.NoiseSource exposing (Generator)
 
 
 type alias Settings =
@@ -96,14 +96,14 @@ view address settings =
     ]
 
 
-output : Settings -> Result String (String -> String)
+output : Settings -> Result String (Generator -> String)
 output settings =
     if | not ( settings.lowercase
             || settings.uppercase
             || settings.numeric
             || settings.symbols) -> Err "Must select at least one character type"
        | settings.length < 6 -> Err "Requested output too short"
-       | otherwise -> Ok (\ seed -> "garble(" ++ seed ++ ")")
+       | otherwise -> Ok (\ seed -> "garble(TODO)")
 
 error : Settings -> Maybe String
 error settings =

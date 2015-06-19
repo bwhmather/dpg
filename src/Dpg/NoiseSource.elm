@@ -1,7 +1,7 @@
 module Dpg.NoiseSource
     ( Seed, Request(Request, Nothing)
     , Output(NoResult, Progress, Result, Error)
-    , Noise
+    , Generator
     , new
     ) where
 
@@ -15,7 +15,7 @@ import Time exposing (delay, second)
 
 import Native.Dpg.NoiseSource
 
-type alias Noise = String
+type Generator = Generator
 type NoiseSource = NoiseSource (Signal Output)
 
 
@@ -35,7 +35,7 @@ type Update
     = RequestStart { password : String, salt : String, bytes : Int }
     | RequestStop
     | NotifyProgress Float
-    | NotifyCompleted Noise
+    | NotifyCompleted Generator
     | NotifyError String
     | NoOp
 
@@ -44,7 +44,7 @@ type Update
 type State
     = Stopped
     | InProgress Float
-    | Completed Noise
+    | Completed Generator
     | Errored String
 
 {-| Public state
@@ -52,7 +52,7 @@ type State
 type Output
     = NoResult
     | Progress Float
-    | Result Noise
+    | Result Generator
     | Error String
 
 
@@ -108,3 +108,6 @@ new requests =
         (Signal.merge
           (Signal.map requestToStateUpdate requests)
           responses)))
+
+next : Generator -> (Int, Generator)
+next = Native.Dpg.NoiseSource.next
