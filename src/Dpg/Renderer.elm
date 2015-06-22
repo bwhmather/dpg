@@ -96,6 +96,26 @@ view address settings =
     ]
 
 
+getSrcChars : Settings -> String
+getSrcChars settings
+    =  (if settings.lowercase then "abcdefghijklmnopqrstuvwxyz" else "")
+    ++ (if settings.uppercase then "ABCDEFGHIJKLMNOPQRSTUVWXYZ" else "")
+    ++ (if settings.numeric then "01234567890123456789" else "")
+    ++ (if settings.symbols then "!\"#$%&'()*+,-./:;<=>>@[\\]^_`{|}~" else "")
+
+
+
+render : String -> Int -> Generator -> String
+render srcChars length generator = case length of
+    0 -> ""
+    _ -> let (seed, generator') = Generator.next generator
+             index = seed % (String.length srcChars)
+             rest = render srcChars (length - 1) generator'
+             head = String.slice index (index + 1) srcChars
+         in
+             head ++ rest
+
+
 output : Settings -> Result String (Generator -> String)
 output settings =
     if | not ( settings.lowercase
@@ -103,7 +123,7 @@ output settings =
             || settings.numeric
             || settings.symbols) -> Err "Must select at least one character type"
        | settings.length < 6 -> Err "Requested output too short"
-       | otherwise -> Ok (\ seed -> "garble(TODO)")
+       | otherwise -> Ok (render (getSrcChars settings) settings.length)
 
 error : Settings -> Maybe String
 error settings =
