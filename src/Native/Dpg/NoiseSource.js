@@ -48,7 +48,19 @@ Elm.Native.Dpg.NoiseSource.make = function(elm) {
                 break;
               case 'completed':
                 w = undefined;
-                var generator = Generator.fromInts(event.data['result']);
+                var bytes = event.data['result'];
+                /* read bytes as big-endian ints */
+                var ints = []
+                for (var i=0; i<bytes.length; i+=4) {
+                    ints.push(
+                        (bytes[i] * 16777216) +
+                        (bytes[i+1] * 65536) +
+                        (bytes[i+2] * 256) +
+                        (bytes[i+3] * 1)
+                    );
+                };
+
+                var generator = Generator.fromInts(ints);
                 elm.notify(responses.id, {ctor: 'NotifyCompleted', _0: generator});
                 break;
               case 'error':
@@ -73,7 +85,7 @@ Elm.Native.Dpg.NoiseSource.make = function(elm) {
                 w = new Worker('/assets/js/worker.js');
                 w.onmessage = onmessage;
                 w.onerror = onerror;
-                w.postMessage({password: req.password, seed: req.seed, bytes: 619});
+                w.postMessage({password: req.password, seed: req.seed, bytes: 619*4});
                 break;
               case 'Nothing':
                 kill_worker();
