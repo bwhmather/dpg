@@ -33,7 +33,7 @@ Elm.Native.Dpg.NoiseSource.make = function(elm) {
             } else {
                 return false;
             }
-        }
+        };
 
         function onmessage(event) {
             /* Ignore message from old workers */
@@ -50,7 +50,7 @@ Elm.Native.Dpg.NoiseSource.make = function(elm) {
                 w = undefined;
                 var bytes = event.data['result'];
                 /* read bytes as big-endian ints */
-                var ints = []
+                var ints = [];
                 for (var i=0; i<bytes.length; i+=4) {
                     ints.push(
                         (bytes[i] * 16777216) +
@@ -78,7 +78,6 @@ Elm.Native.Dpg.NoiseSource.make = function(elm) {
         };
 
         function processRequest(req) {
-
             switch (req.ctor) {
               case 'Request':
                 kill_worker();
@@ -93,10 +92,8 @@ Elm.Native.Dpg.NoiseSource.make = function(elm) {
             }
         };
 
-        function take1(x,y) { return x }
-
         return A3(
-            Signal.map2, F2(take1),
+            Signal.map2, F2(function (x, y){ return x; }),
             responses,
             A2(Signal.map, processRequest, requests)
         );
