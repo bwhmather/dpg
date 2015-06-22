@@ -29,8 +29,8 @@ type Action
     | Numeric Bool
     | Symbols Bool
 
-defaultSettings : Settings
-defaultSettings =
+initialSettings : Settings
+initialSettings =
     { length = 16
     , lowercase = True
     , uppercase = True
@@ -102,7 +102,6 @@ getSrcChars settings
     ++ (if settings.uppercase then "ABCDEFGHIJKLMNOPQRSTUVWXYZ" else "")
     ++ (if settings.numeric then "01234567890123456789" else "")
     ++ (if settings.symbols then "!\"#$%&'()*+,-./:;<=>>@[\\]^_`{|}~" else "")
-
 
 
 render : String -> Int -> Generator -> String

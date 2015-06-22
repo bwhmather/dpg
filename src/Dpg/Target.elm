@@ -22,8 +22,8 @@ type Action
     | Password String
 
 
-defaultSettings : Settings
-defaultSettings =
+initialSettings : Settings
+initialSettings =
     { hostname = ""
     , username = ""
     , password = ""

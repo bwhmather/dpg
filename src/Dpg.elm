@@ -26,10 +26,10 @@ type Action
     | NoOp
 
 
-defaultSettings : Settings
-defaultSettings =
-    { target = Target.defaultSettings
-    , renderer = Renderer.defaultSettings
+initialSettings : Settings
+initialSettings =
+    { target = Target.initialSettings
+    , renderer = Renderer.initialSettings
     }
 
 
@@ -87,7 +87,7 @@ actions = Signal.mailbox NoOp
 
 -- Signals
 settings : Signal Settings
-settings = Signal.foldp update defaultSettings actions.signal
+settings = Signal.foldp update initialSettings actions.signal
 
 seed : Signal (Result String Source.Seed)
 seed = Signal.dropRepeats <| Signal.map generateSeed settings
