@@ -73,7 +73,7 @@ Elm.Native.Dpg.NoiseSource.make = function(elm) {
                 w = new Worker('/assets/js/worker.js');
                 w.onmessage = onmessage;
                 w.onerror = onerror;
-                w.postMessage(req._0);
+                w.postMessage({password: req.password, seed: req.seed, bytes: 619});
                 break;
               case 'Nothing':
                 kill_worker();
