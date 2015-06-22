@@ -11,7 +11,7 @@ import Html.Attributes exposing (stringProperty, boolProperty, value)
 
 import Signal exposing (Message)
 
-import Dpg.NoiseSource exposing (Generator)
+import Dpg.Generator as Generator exposing (Generator)
 
 
 type alias Settings =

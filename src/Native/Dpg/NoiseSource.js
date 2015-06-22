@@ -13,6 +13,7 @@ Elm.Native.Dpg.NoiseSource.make = function(elm) {
     var Signal = Elm.Signal.make(elm);
     var NS = Elm.Native.Signal.make(elm);
     var List = Elm.Native.List.make(elm);
+    var Generator = Elm.Native.Dpg.Generator.make(elm)
 
     function spawn(requests) {
         var responses = NS.input({ctor: 'NoOp'});
@@ -47,7 +48,8 @@ Elm.Native.Dpg.NoiseSource.make = function(elm) {
                 break;
               case 'completed':
                 w = undefined;
-                elm.notify(responses.id, {ctor: 'NotifyCompleted', _0: event.data['result']});
+                var generator = Generator.fromInts(event.data['result']);
+                elm.notify(responses.id, {ctor: 'NotifyCompleted', _0: generator});
                 break;
               case 'error':
                 elm.notify(responses.id, {ctor: 'NotifyError', _0: event.data['message']});
