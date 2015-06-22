@@ -23,7 +23,6 @@ type NoiseSource = NoiseSource (Signal Output)
 type alias Seed =
     { password : String
     , salt : String
-    , bytes : Int
     }
 
 type Request
@@ -33,7 +32,7 @@ type Request
 {-| Update to internal state
 |-}
 type Update
-    = RequestStart { password : String, salt : String, bytes : Int }
+    = RequestStart Seed
     | RequestStop
     | NotifyProgress Float
     | NotifyCompleted Generator

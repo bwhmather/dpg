@@ -60,7 +60,6 @@ generateSeed settings =
     Result.map2 (\ target renderer ->
         { password = target.password
         , salt = target.salt
-        , bytes = 8
         })
       (Target.output settings.target)
       (Renderer.output settings.renderer)
