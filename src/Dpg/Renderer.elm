@@ -7,10 +7,11 @@ import Result exposing (Result (Ok, Err))
 
 import Html exposing (Html, br, fieldset, legend, label, text, input, span)
 import Html.Events exposing (on, targetValue, targetChecked)
-import Html.Attributes exposing (stringProperty, boolProperty, value)
+import Html.Attributes exposing (value)
 
 import Signal exposing (Message)
 
+import Dpg.Utils exposing (stringProperty, boolProperty)
 import Dpg.Generator as Generator exposing (Generator)
 
 

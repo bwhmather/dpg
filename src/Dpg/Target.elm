@@ -5,9 +5,12 @@ import Result exposing (Result(Ok, Err))
 
 import Html exposing (Html, br, fieldset, legend, label, text, input)
 import Html.Events exposing (on, targetValue)
-import Html.Attributes exposing (stringProperty, boolProperty, value)
+import Html.Attributes exposing (value)
 
 import Signal exposing (Message)
+
+import Dpg.Utils exposing (stringProperty, boolProperty)
+
 
 
 type alias Settings =
