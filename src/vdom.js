@@ -1,5 +1,5 @@
-function h(type, props, ...children) {
-  return { type, props, children };
+function h(type, attributes, ...children) {
+  return { type, attributes, children };
 }
 
 function setAttribute($elem, key, value) {
@@ -57,6 +57,35 @@ function removeAttribute($elem, key) {
   }
 }
 
+function updateAttributes($elem, attributes) {
+  for (let i = 0; i < $elem.attributes.length; i++) {
+    let attr = $elem.attributes[i];
+
+    if (!attributes.hasOwnProperty(attr.name)) {
+      removeAttribute($elem, attr.name);
+    }
+  }
+
+  for (attr in attributes) {
+    if (attributes.hasOwnProperty(attr)) {
+      setAttribute($elem, attr, attributes[attr]);
+    }
+  }
+}
+
+function updateChildren($elem, children) {
+  for (let i = 0; i < children.length; i++) {
+    let $childElem = $elem.childNodes[i];
+    let childNode = children[i];
+
+    update(childNode, $elem, $childElem);
+  }
+
+  while ($elem.childNodes.length > children.length) {
+    $elem.removeChild($elem.lastChild);
+  }
+}
+
 // Renders a node to an element and returns it.
 function update(node, $parent, $elem) {
   let $original = $elem;
@@ -72,32 +101,9 @@ function update(node, $parent, $elem) {
       $elem = document.createElement(node.type);
     }
 
-    // === Update attributes ===
-    for (let i = 0; i < $elem.attributes.length; i++) {
-      let attr = $elem.attributes[i];
+    updateAttributes($elem, node.attributes);
+    updateChildren($elem, node.children);
 
-      if (!node.props.hasOwnProperty(attr.name)) {
-        removeAttribute($elem, attr.name);
-      }
-    }
-
-    for (prop in node.props) {
-      if (node.props.hasOwnProperty(prop)) {
-        setAttribute($elem, prop, node.props[prop]);
-      }
-    }
-
-    // === Update children ===
-    for (let i = 0; i < node.children.length; i++) {
-      let $childElem = $elem.childNodes[i];
-      let childNode = node.children[i];
-
-      update(childNode, $elem, $childElem);
-    }
-
-    while ($elem.childNodes.length > node.children.length) {
-      $elem.removeChild($elem.lastChild);
-    }
   }
 
   if ($original == null) {
@@ -107,9 +113,8 @@ function update(node, $parent, $elem) {
   }
 }
 
-
-function render($root, node) {
-  update(node, $root, $root.lastChild);
+function render($root, ...nodes) {
+  updateChildren($root, nodes);
 }
 
 
