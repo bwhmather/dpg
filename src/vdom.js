@@ -2,6 +2,61 @@ function h(type, props, ...children) {
   return { type, props, children };
 }
 
+function setAttribute($elem, key, value) {
+  if (key[0] === "o" && key[1] === "n") {
+    // TODO
+  } else if (key === "style") {
+    $elem.style.cssText = value;
+  } else if (key in $elem) {
+    // Element exposes attribute as a property.  We should be able to set it
+    // using an assignment expression.
+    if (
+      ($elem.localName === "input" || $elem.localName === "textarea") &&
+      key === "value" && $elem.value === "" + value &&
+      $elem === document.activeElement
+    ) {
+      // Chrome will jump the cursor to an end of `input` box or `textarea` if
+      // value is re-applied.
+    } else if (
+      ($elem.localName === "select" || $elem.localName === "option") &&
+      key === "value" && $elem.value === "" + value
+    ) {
+      // `select` or `option` inputs will glitch in chrome if assigned the
+      // same value.
+    } else if ($elem.localName === "input" && key === "type") {
+      // Using an assignment expression to set input type in IE11 causes a big
+      // error.
+      $elem.setAttribute(key, value);
+    } else {
+      $elem[key] = value;
+    }
+  } else if (typeof value === "boolean") {
+    if (value) {
+      $elem.setAttribute(key, "");
+    } else {
+      $elem.removeAttribute(key);
+    }
+  } else {
+    $elem.setAttribute(key, value);
+  }
+}
+
+function removeAttribute($elem, key) {
+  if (key[0] === "o" && key[1] === "n") {
+    // TODO
+  } else if (key === "style") {
+    $elem.style.cssText = "";
+  } else if (
+    key in $elem &&
+	  !($elem.localName === "option" && key === "value") &&
+		!($elem.localName === "input" && key === "type")
+  ) {
+    $elem[key] = null;
+  } else {
+    $elem.removeAttribute(key);
+  }
+}
+
 // Renders a node to an element and returns it.
 function update(node, $parent, $elem) {
   let $original = $elem;
@@ -22,13 +77,13 @@ function update(node, $parent, $elem) {
       let attr = $elem.attributes[i];
 
       if (!node.props.hasOwnProperty(attr.name)) {
-        $elem.removeAttribute(attr.name);
+        removeAttribute($elem, attr.name);
       }
     }
 
     for (prop in node.props) {
       if (node.props.hasOwnProperty(prop)) {
-        $elem.setAttribute(prop, node.props[prop]);
+        setAttribute($elem, prop, node.props[prop]);
       }
     }
 
