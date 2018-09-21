@@ -95,20 +95,20 @@ function listAttributes($elem, key) {
 
   let handlers = EVENT_HANDLER_MAP.get($elem);
   if (typeof handlers !== "undefined") {
-    for (let eventName in Object.keys(handlers)) {
+    Object.keys(handlers).forEach((eventName) => {
       attributes.push("on" + eventName);
-    }
+    })
   }
 
   return attributes;
 }
 
 function updateAttributes($elem, attributes) {
-  for (let attr in listAttributes($elem)) {
-    if (!attributes.hasOwnProperty(attr.name)) {
-      removeAttribute($elem, attr.name);
+  listAttributes($elem).forEach((attr) => {
+    if (!attributes.hasOwnProperty(attr)) {
+      removeAttribute($elem, attr);
     }
-  }
+  })
 
   for (let attr in attributes) {
     if (attributes.hasOwnProperty(attr)) {
