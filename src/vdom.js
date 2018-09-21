@@ -108,7 +108,7 @@ function updateAttributes($elem, attributes) {
     }
   }
 
-  for (attr in attributes) {
+  for (let attr in attributes) {
     if (attributes.hasOwnProperty(attr)) {
       setAttribute($elem, attr, attributes[attr]);
     }
