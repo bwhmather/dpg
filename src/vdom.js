@@ -2,9 +2,27 @@ function h(type, attributes, ...children) {
   return { type, attributes, children };
 }
 
+let EVENT_HANDLER_MAP = new WeakMap();
+
+function handleEvent(evt) {
+  let handler = EVENT_HANDLER_MAP.get(evt.target)[evt.type];
+  if (typeof handler === "function") {
+    return handler.call(evt.target, evt);
+  }
+  if (typeof handler.handleEvent === "function") {
+    return handler.handleEvent(evt);
+  }
+}
+
 function setAttribute($elem, key, value) {
   if (key[0] === "o" && key[1] === "n") {
-    // TODO
+    let handlers = EVENT_HANDLER_MAP.get($elem);
+    if (typeof current === "undefined") {
+      $elem.addEventListener(key.slice(2), handleEvent, false);
+      handlers = {};
+      EVENT_HANDLER_MAP.set($elem, handlers);
+    }
+    handlers[key.slice(2)] = value;
   } else if (key === "style") {
     $elem.style.cssText = value;
   } else if (key in $elem) {
@@ -43,7 +61,17 @@ function setAttribute($elem, key, value) {
 
 function removeAttribute($elem, key) {
   if (key[0] === "o" && key[1] === "n") {
-    // TODO
+    let handlers = EVENT_HANDLER_MAP.get($elem);
+    if (typeof handlers !== "undefined") {
+      if (handlers.hasOwnProperty[key.slice(2)]) {
+        delete handlers[key.slice(2)];
+        $elem.removeEventListener(key.slice(2), handler, false);
+      }
+
+      if (Object.keys(handlers).length === 0) {
+        EVENT_HANDLER_MAP.delete(key.slice(2));
+      }
+    }
   } else if (key === "style") {
     $elem.style.cssText = "";
   } else if (
@@ -57,10 +85,24 @@ function removeAttribute($elem, key) {
   }
 }
 
-function updateAttributes($elem, attributes) {
+function listAttributes($elem, key) {
+  let attributes = [];
   for (let i = 0; i < $elem.attributes.length; i++) {
-    let attr = $elem.attributes[i];
+    attributes.push($elem.attributes[i]);
+  }
 
+  handlers = EVENT_HANDLER_MAP.get($elem);
+  if (typeof handlers !== "undefined") {
+    for (let eventName in Object.keys(handlers)) {
+      attributes.push("on" + eventName);
+    }
+  }
+
+  return attributes;
+}
+
+function updateAttributes($elem, attributes) {
+  for (let attr in listAttributes($elem)) {
     if (!attributes.hasOwnProperty(attr.name)) {
       removeAttribute($elem, attr.name);
     }
@@ -103,7 +145,6 @@ function update(node, $parent, $elem) {
 
     updateAttributes($elem, node.attributes);
     updateChildren($elem, node.children);
-
   }
 
   if ($original == null) {
