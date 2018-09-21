@@ -1,3 +1,5 @@
+"use strict";
+
 function h(type, attributes, ...children) {
   return { type, attributes, children };
 }
