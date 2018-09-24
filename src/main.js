@@ -1,3 +1,5 @@
+"use strict";
+
 function updateTarget(targetState, action) {
   switch (action.kind) {
     case 'SET_HOSTNAME':
