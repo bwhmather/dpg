@@ -93,12 +93,9 @@ function listAttributes($elem, key) {
     attributes.push($elem.attributes[i]);
   }
 
-  let handlers = EVENT_HANDLER_MAP.get($elem);
-  if (typeof handlers !== "undefined") {
-    Object.keys(handlers).forEach((eventName) => {
-      attributes.push("on" + eventName);
-    })
-  }
+  Object.keys(EVENT_HANDLER_MAP.get($elem) || {}).forEach((eventName) => {
+    attributes.push("on" + eventName);
+  })
 
   return attributes;
 }
