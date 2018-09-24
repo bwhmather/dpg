@@ -159,29 +159,3 @@ function update(node, $parent, $elem) {
 function render($root, ...nodes) {
   updateChildren($root, nodes);
 }
-
-
-let vdoms = [
-    h("div", {}, "Hello", h("h1", {}, "world")),
-    h("div", {}, "world", h("h1", {}, "world")),
-    h("div", {}, h("h1", {}, "world"), "!"),
-    h("div", {}, h("h1", {"style": "color: red"}, "world"), "!"),
-    h("div", {}, h("h1", {}, "world"), "!"),
-    h("div", {}, "Hello", h("h1", {}, "world")),
-];
-
-let i = 0;
-
-function loop() {
-  i += 1;
-  i %= vdoms.length;
-
-  render(document.getElementById("root"), vdoms[i]);
-
-  window.setTimeout(loop, 3000);
-}
-
-loop();
-
-
-
