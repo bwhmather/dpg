@@ -4,7 +4,7 @@ import { uglify } from 'rollup-plugin-uglify';
 
 export default [
   {
-    input: 'src/index.tsx',
+    input: 'src/index.ts',
     plugins: [
       typescript({
         abortOnError: false,
