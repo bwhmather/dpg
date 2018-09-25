@@ -1,9 +1,3 @@
-"use strict";
-
-function h(type, attributes, ...children) {
-  return { type, attributes, children };
-}
-
 let EVENT_HANDLER_MAP = new WeakMap();
 
 function handleEvent(evt) {
@@ -19,7 +13,7 @@ function handleEvent(evt) {
 function setAttribute($elem, key, value) {
   if (key[0] === "o" && key[1] === "n") {
     let handlers = EVENT_HANDLER_MAP.get($elem);
-    if (typeof current === "undefined") {
+    if (typeof handlers === "undefined") {
       $elem.addEventListener(key.slice(2), handleEvent, false);
       handlers = {};
       EVENT_HANDLER_MAP.set($elem, handlers);
@@ -66,8 +60,8 @@ function removeAttribute($elem, key) {
     let handlers = EVENT_HANDLER_MAP.get($elem);
     if (typeof handlers !== "undefined") {
       if (handlers.hasOwnProperty[key.slice(2)]) {
+        $elem.removeEventListener(key.slice(2), handlers[key.slice(2)], false);
         delete handlers[key.slice(2)];
-        $elem.removeEventListener(key.slice(2), handler, false);
       }
 
       if (Object.keys(handlers).length === 0) {
@@ -87,7 +81,7 @@ function removeAttribute($elem, key) {
   }
 }
 
-function listAttributes($elem, key) {
+function listAttributes($elem) {
   let attributes = [];
   for (let i = 0; i < $elem.attributes.length; i++) {
     attributes.push($elem.attributes[i]);
@@ -101,11 +95,11 @@ function listAttributes($elem, key) {
 }
 
 function updateAttributes($elem, attributes) {
-  listAttributes($elem).forEach((attr) => {
+  for (let attr of listAttributes($elem)) {
     if (!attributes.hasOwnProperty(attr)) {
       removeAttribute($elem, attr);
     }
-  })
+  }
 
   for (let attr in attributes) {
     if (attributes.hasOwnProperty(attr)) {
@@ -153,6 +147,10 @@ function update(node, $parent, $elem) {
   }
 }
 
-function render($root, ...nodes) {
+export function h(type, attributes, ...children) {
+  return { type, attributes, children };
+}
+
+export function render($root, ...nodes) {
   updateChildren($root, nodes);
 }

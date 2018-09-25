@@ -7,7 +7,7 @@ function updateTarget(targetState, action) {
     case 'SET_USERNAME':
       return { ...targetState, username: action.text };
     case 'SET_PASSWORD':
-      return { ...tergetState, password: action.text };
+      return { ...targetState, password: action.text };
     default:
       return targetState
   }
@@ -26,13 +26,18 @@ function updateSettings(settingsState, action) {
     case 'SET_ENABLE_SYMBOLS':
       return { ...settingsState, enableSymbols: action.enabled };
   }
-
 }
+
+function updateOutput(outputState, action) {
+  return outputState;
+}
+
 
 function updateDpg(state, action) {
   return {
     target: updateTarget(state.target, action),
     settings: updateSettings(state.settings, action),
+    output: updateOutput(state.output, action),
   }
 }
 
@@ -153,7 +158,7 @@ let state = {
     enableNumbers: true,
     enableSymbols: true,
   },
-  output: null,
+    output: {},
 };
 
 function dispatch(action) {
