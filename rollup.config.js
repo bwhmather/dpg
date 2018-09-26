@@ -13,7 +13,7 @@ export default [
     ],
     output: {
       format: 'iife',
-      name: 'evt',
+      name: 'dpg',
       file: 'dist/app.js',
       sourcemap: true,
       sourcemapFile: 'dist/app.js.map'
