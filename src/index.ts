@@ -1,5 +1,28 @@
 import { h, render } from "./vdom";
 
+let initialTargetState = {
+  hostname: null,
+  username: null,
+  password: null,
+};
+
+let initialSettingsState = {
+  outputLength: 16,
+  enableLowercase: true,
+  enableUppercase: true,
+  enableNumbers: true,
+  enableSymbols: true,
+};
+
+let initialOutputState = {
+}
+
+let initialState = {
+  target: initialTargetState,
+  settings: initialSettingsState,
+  output: initialOutputState,
+}
+
 function updateTarget(targetState, action) {
   switch (action.kind) {
     case 'SET_HOSTNAME':
@@ -25,13 +48,14 @@ function updateSettings(settingsState, action) {
       return { ...settingsState, enableNumbers: action.enabled };
     case 'SET_ENABLE_SYMBOLS':
       return { ...settingsState, enableSymbols: action.enabled };
+    default:
+      return settingsState;
   }
 }
 
 function updateOutput(outputState, action) {
   return outputState;
 }
-
 
 function updateDpg(state, action) {
   return {
@@ -41,11 +65,9 @@ function updateDpg(state, action) {
   }
 }
 
-
 function input(label, attrs) {
     return h("label", {}, label + ": ", h("input", attrs));
 }
-
 
 function renderTarget(targetState, dispatch) {
   return h(
@@ -137,7 +159,6 @@ function renderSettings(settingsState, dispatch) {
   );
 }
 
-
 function renderDpg(state, dispatch) {
   return h("div", {},
     renderTarget(state.target, dispatch),
@@ -145,25 +166,27 @@ function renderDpg(state, dispatch) {
   );
 }
 
-let state = {
-  target: {
-    hostname: null,
-    username: null,
-    password: null,
-  },
-  settings: {
-    outputLength: 16,
-    enableLowercase: true,
-    enableUppercase: true,
-    enableNumbers: true,
-    enableSymbols: true,
-  },
-    output: {},
-};
+export function loop(reducer, onUpdate, state) {
+  function dispatch(action?) {
+    if (typeof action == "function") {
+      action(dispatch, () => state);
+    } else {
+      state = reducer(state, action);
+    }
 
-function dispatch(action) {
-  state = updateDpg(state, action);
-  render(document.getElementById("root"), renderDpg(state, dispatch));
+    if (typeof onUpdate == "function") {
+      onUpdate(state, dispatch);
+    }
+  }
+
+  // Call the reducer without any arguments to initialize the state.
+  dispatch({kind: 'INIT'});
 }
 
-render(document.getElementById("root"), renderDpg(state, dispatch));
+export function run($root) {
+  loop(
+    updateDpg,
+    (state, dispatch) => render($root, renderDpg(state, dispatch)),
+    initialState,
+  );
+}
