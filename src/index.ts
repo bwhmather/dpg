@@ -125,35 +125,35 @@ function renderSettings(settingsState, dispatch) {
 
     input("Enable Lowercase", {
       "type": "checkbox",
-      "value": settingsState.enableLowercase,
+      "checked": settingsState.enableLowercase,
       "onchange": (e) => {
         e.preventDefault();
-        dispatch({kind: "SET_ENABLE_LOWERCASE", value: e.target.value});
+        dispatch({kind: "SET_ENABLE_LOWERCASE", enabled: e.target.checked});
       },
     }),
 
     input("Enable Uppercase", {
       "type": "checkbox",
-      "value": settingsState.enableUppercase,
+      "checked": settingsState.enableUppercase,
       "onchange": (e) => {
         e.preventDefault();
-        dispatch({kind: "SET_ENABLE_UPPERCASE", value: e.target.value});
+        dispatch({kind: "SET_ENABLE_UPPERCASE", enabled: e.target.checked});
       },
     }),
-    input("Enable Lowercase", {
+    input("Enable Numbers", {
       "type": "checkbox",
-      "value": settingsState.enableNumbers,
+      "checked": settingsState.enableNumbers,
       "onchange": (e) => {
         e.preventDefault();
-        dispatch({kind: "SET_ENABLE_NUMBERS", value: e.target.value});
+        dispatch({kind: "SET_ENABLE_NUMBERS", enabled: e.target.checked});
       },
     }),
-    input("Enable Lowercase", {
+    input("Enable Symbols", {
       "type": "checkbox",
-      "value": settingsState.enableSymbols,
+      "checked": settingsState.enableSymbols,
       "onchange": (e) => {
         e.preventDefault();
-        dispatch({kind: "SET_ENABLE_SYMBOLS", value: e.target.value});
+        dispatch({kind: "SET_ENABLE_SYMBOLS", enabled: e.target.checked});
       },
     }),
   );
