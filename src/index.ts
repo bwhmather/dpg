@@ -1,192 +1,155 @@
 import { h, render } from "./vdom";
 
-let initialTargetState = {
-  hostname: null,
-  username: null,
-  password: null,
-};
-
-let initialSettingsState = {
-  outputLength: 16,
-  enableLowercase: true,
-  enableUppercase: true,
-  enableNumbers: true,
-  enableSymbols: true,
-};
-
-let initialOutputState = {
-}
-
-let initialState = {
-  target: initialTargetState,
-  settings: initialSettingsState,
-  output: initialOutputState,
-}
-
-function updateTarget(targetState, action) {
-  switch (action.kind) {
-    case 'SET_HOSTNAME':
-      return { ...targetState, hostname: action.text };
-    case 'SET_USERNAME':
-      return { ...targetState, username: action.text };
-    case 'SET_PASSWORD':
-      return { ...targetState, password: action.text };
-    default:
-      return targetState
-  }
-}
-
-function updateSettings(settingsState, action) {
-  switch (action.kind) {
-    case 'SET_OUTPUT_LENGTH':
-      return { ...settingsState, outputLength: action.value };
-    case 'SET_ENABLE_LOWERCASE':
-      return { ...settingsState, enableLowercase: action.enabled };
-    case 'SET_ENABLE_UPPERCASE':
-      return { ...settingsState, enableUppercase: action.enabled };
-    case 'SET_ENABLE_NUMBERS':
-      return { ...settingsState, enableNumbers: action.enabled };
-    case 'SET_ENABLE_SYMBOLS':
-      return { ...settingsState, enableSymbols: action.enabled };
-    default:
-      return settingsState;
-  }
-}
-
-function updateOutput(outputState, action) {
-  return outputState;
-}
-
-function updateDpg(state, action) {
-  return {
-    target: updateTarget(state.target, action),
-    settings: updateSettings(state.settings, action),
-    output: updateOutput(state.output, action),
-  }
-}
-
-function input(label, attrs) {
-    return h("label", {}, label + ": ", h("input", attrs));
-}
-
-function renderTarget(targetState, dispatch) {
-  return h(
-    "fieldset", {}, 
-    h("legend", {}, "Login Details"),
-
-    input("Hostname", {
-      "type": "text",
-      "value": targetState.hostname || "",
-      "onchange": (e) => {
-        e.preventDefault();
-        dispatch({kind: "SET_HOSTNAME", text: e.target.value});
-      },
-      "autoFocus": true,
-      "autoCorrect": "off",
-      "autoCapitalize": "off",
-    }),
-
-    input("Username", {
-      "type": "text",
-      "value": targetState.username || "",
-      "onchange": (e) => {
-        e.preventDefault();
-        dispatch({kind: "SET_USERNAME", text: e.target.value});
-      },
-      "autoCorrect": "off",
-      "autoCapitalize": "off",
-    }),
-
-    input("Password", {
-      "type": "password",
-      "value": targetState.password || "",
-      "onchange": (e) => {
-        e.preventDefault();
-        dispatch({kind: "SET_PASSWORD", text: e.target.value});
-      },
-    }),
-  );
-}
-
-
-function renderSettings(settingsState, dispatch) {
-  return h(
-    "fieldset", {}, 
-    h("legend", {}, "Login Details"),
-  
-    input("Password Length", {
-      "type": "number",
-      "value": settingsState.outputLength,
-      "onchange": (e) => {
-        e.preventDefault();
-        dispatch({kind: "SET_OUTPUT_LENGTH", value: e.target.value});
-      },
-    }),
-
-    input("Enable Lowercase", {
-      "type": "checkbox",
-      "checked": settingsState.enableLowercase,
-      "onchange": (e) => {
-        e.preventDefault();
-        dispatch({kind: "SET_ENABLE_LOWERCASE", enabled: e.target.checked});
-      },
-    }),
-
-    input("Enable Uppercase", {
-      "type": "checkbox",
-      "checked": settingsState.enableUppercase,
-      "onchange": (e) => {
-        e.preventDefault();
-        dispatch({kind: "SET_ENABLE_UPPERCASE", enabled: e.target.checked});
-      },
-    }),
-    input("Enable Numbers", {
-      "type": "checkbox",
-      "checked": settingsState.enableNumbers,
-      "onchange": (e) => {
-        e.preventDefault();
-        dispatch({kind: "SET_ENABLE_NUMBERS", enabled: e.target.checked});
-      },
-    }),
-    input("Enable Symbols", {
-      "type": "checkbox",
-      "checked": settingsState.enableSymbols,
-      "onchange": (e) => {
-        e.preventDefault();
-        dispatch({kind: "SET_ENABLE_SYMBOLS", enabled: e.target.checked});
-      },
-    }),
-  );
-}
-
-function renderDpg(state, dispatch) {
-  return h("div", {},
-    renderTarget(state.target, dispatch),
-    renderSettings(state.settings, dispatch),
-  );
-}
-
-export function loop(reducer, onUpdate, state) {
-  function dispatch(action?) {
-    if (typeof action == "function") {
-      action(dispatch, () => state);
-    } else {
-      state = reducer(state, action);
-    }
-
-    if (typeof onUpdate == "function") {
-      onUpdate(state, dispatch);
-    }
-  }
-
-  // Call the reducer without any arguments to initialize the state.
-  dispatch({kind: 'INIT'});
-}
 
 export function run($root) {
-  loop(
-    updateDpg,
-    (state, dispatch) => render($root, renderDpg(state, dispatch)),
-    initialState,
-  );
+  /*** State ***/
+  let details = {
+    hostname: null,
+    username: null,
+    password: null,
+  };
+
+  let settings = {
+    outputLength: 16,
+    enableLowercase: true,
+    enableUppercase: true,
+    enableNumbers: true,
+    enableSymbols: true,
+  };
+
+  let output = {};
+
+  function recalc() {
+
+  }
+
+
+  /*** Rendering ***/
+  function input(label, attrs) {
+      return h("label", {}, label + ": ", h("input", attrs));
+  }
+
+  function renderDetails() {
+    return h(
+      "fieldset", {},
+      h("legend", {}, "Login Details"),
+
+      input("Hostname", {
+        "type": "text",
+        "value": details.hostname || "",
+        "onchange": (e) => {
+          e.preventDefault();
+          details.hostname = e.target.value;
+          recalc(); redraw();
+        },
+        "autoFocus": true,
+        "autoCorrect": "off",
+        "autoCapitalize": "off",
+      }),
+
+      input("Username", {
+        "type": "text",
+        "value": details.username || "",
+        "onchange": (e) => {
+          e.preventDefault();
+          details.username = e.target.value;
+          recalc(); redraw();
+        },
+        "autoCorrect": "off",
+        "autoCapitalize": "off",
+      }),
+
+      input("Password", {
+        "type": "password",
+        "value": details.password || "",
+        "onchange": (e) => {
+          e.preventDefault();
+          details.password = e.target.value;
+          recalc(); redraw();
+        },
+      }),
+    );
+  }
+
+  function renderOutput() {
+    return "output";
+  }
+
+  function renderSettings() {
+    return h(
+      "fieldset", {},
+      h("legend", {}, "Login Details"),
+
+      input("Password Length", {
+        "type": "number",
+        "value": settings.outputLength,
+        "onchange": (e) => {
+          e.preventDefault();
+          settings.outputLength = e.target.value;
+          recalc(); redraw();
+        },
+      }),
+
+      input("Enable Lowercase", {
+        "type": "checkbox",
+        "checked": settings.enableLowercase,
+        "onchange": (e) => {
+          e.preventDefault();
+          settings.enableLowercase = e.target.checked;
+          recalc(); redraw();
+        },
+      }),
+
+      input("Enable Uppercase", {
+        "type": "checkbox",
+        "checked": settings.enableUppercase,
+        "onchange": (e) => {
+          e.preventDefault();
+          settings.enableUppercase = e.target.checked;
+          recalc(); redraw();
+        },
+      }),
+      input("Enable Numbers", {
+        "type": "checkbox",
+        "checked": settings.enableNumbers,
+        "onchange": (e) => {
+          e.preventDefault();
+          settings.enableNumbers = e.target.checked;
+          recalc(); redraw();
+        },
+      }),
+      input("Enable Symbols", {
+        "type": "checkbox",
+        "checked": settings.enableSymbols,
+        "onchange": (e) => {
+          e.preventDefault();
+          settings.enableSymbols = e.target.checked;
+          recalc(); redraw();
+        },
+      }),
+    );
+  }
+
+  function renderDpg() {
+    return h("div", {},
+      renderDetails(),
+      renderOutput(),
+      renderSettings(),
+    );
+  }
+
+  let redrawQueued = false;
+  function redraw() {
+    if (!redrawQueued) {
+      redrawQueued = true;
+      window.requestAnimationFrame(() => {
+        redrawQueued = false;
+        console.log(details);
+        console.log(settings);
+        render($root, renderDpg())
+      });
+    }
+  }
+
+  redraw();
 }
