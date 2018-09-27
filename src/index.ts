@@ -1,68 +1,90 @@
 import { h, render } from "./vdom";
 
-let initialTargetState = {
-  hostname: null,
-  username: null,
-  password: null,
-};
-
-let initialSettingsState = {
-  outputLength: 16,
-  enableLowercase: true,
-  enableUppercase: true,
-  enableNumbers: true,
-  enableSymbols: true,
-};
-
-let initialOutputState = {
+function initTarget() {
+  return {
+    hostname: null,
+    username: null,
+    password: null,
+  };
 }
 
-let initialState = {
-  target: initialTargetState,
-  settings: initialSettingsState,
-  output: initialOutputState,
+function initSettings() {
+  return {
+    outputLength: 16,
+    enableLowercase: true,
+    enableUppercase: true,
+    enableNumbers: true,
+    enableSymbols: true,
+  };
 }
 
-function updateTarget(targetState, action) {
-  switch (action.kind) {
+function initOutput() {
+  return {}
+}
+
+function initDpg() {
+  return {
+    state: {
+      target: initTarget(),
+      settings: initSettings(),
+      output: initOutput(),
+    },
+    commands: [
+      redraw((dispatch) => renderDpg(state, dispatch)),
+    ]
+  }
+}
+
+function updateTarget(targetState, message) {
+  switch (message.kind) {
     case 'SET_HOSTNAME':
-      return { ...targetState, hostname: action.text };
+      return { ...targetState, hostname: message.text };
     case 'SET_USERNAME':
-      return { ...targetState, username: action.text };
+      return { ...targetState, username: message.text };
     case 'SET_PASSWORD':
-      return { ...targetState, password: action.text };
+      return { ...targetState, password: message.text };
     default:
       return targetState
   }
 }
 
-function updateSettings(settingsState, action) {
-  switch (action.kind) {
+function updateSettings(settingsState, message) {
+  switch (message.kind) {
     case 'SET_OUTPUT_LENGTH':
-      return { ...settingsState, outputLength: action.value };
+      return { ...settingsState, outputLength: message.value };
     case 'SET_ENABLE_LOWERCASE':
-      return { ...settingsState, enableLowercase: action.enabled };
+      return { ...settingsState, enableLowercase: message.enabled };
     case 'SET_ENABLE_UPPERCASE':
-      return { ...settingsState, enableUppercase: action.enabled };
+      return { ...settingsState, enableUppercase: message.enabled };
     case 'SET_ENABLE_NUMBERS':
-      return { ...settingsState, enableNumbers: action.enabled };
+      return { ...settingsState, enableNumbers: message.enabled };
     case 'SET_ENABLE_SYMBOLS':
-      return { ...settingsState, enableSymbols: action.enabled };
+      return { ...settingsState, enableSymbols: message.enabled };
     default:
       return settingsState;
   }
 }
 
-function updateOutput(outputState, action) {
+function updateOutput(outputState, message) {
   return outputState;
 }
 
-function updateDpg(state, action) {
-  return {
-    target: updateTarget(state.target, action),
-    settings: updateSettings(state.settings, action),
-    output: updateOutput(state.output, action),
+function updateDpg(oldState, message) {
+  let state = {
+    target: updateTarget(state.target, message),
+    settings: updateSettings(state.settings, message),
+    output: updateOutput(state.output, message),
   }
+
+  let commands = [];
+  if (seed(state) != seed(oldState)) {
+    commands.push({ kind: "RECALC", data: seed(state)})
+  }
+  commands.push({ kind: "REDRAW", data: state });
+
+  commands.push(redraw((dispatch) => renderDpg(state, dispatch))),
+
+  return {state, commands}
 }
 
 function input(label, attrs) {
@@ -107,7 +129,6 @@ function renderTarget(targetState, dispatch) {
     }),
   );
 }
-
 
 function renderSettings(settingsState, dispatch) {
   return h(
@@ -166,27 +187,40 @@ function renderDpg(state, dispatch) {
   );
 }
 
-export function loop(reducer, onUpdate, state) {
-  function dispatch(action?) {
-    if (typeof action == "function") {
-      action(dispatch, () => state);
-    } else {
-      state = reducer(state, action);
-    }
+export function loop(updater, executor) {
+  function dispatch(message?) {
+    let {newState, commands} = updater(state, message);
 
-    if (typeof onUpdate == "function") {
-      onUpdate(state, dispatch);
+    for (command of commands) {
+      executor(command, dispatch);
     }
   }
 
-  // Call the reducer without any arguments to initialize the state.
   dispatch({kind: 'INIT'});
 }
 
 export function run($root) {
-  loop(
-    updateDpg,
-    (state, dispatch) => render($root, renderDpg(state, dispatch)),
-    initialState,
-  );
+  let loop = new Loop(updateDpg, initDpg, [redraw, recalculate]);
+
+  function execute(command, dispatch) {
+    switch (command.kind) {
+      case 'RECALC':
+        recalc(command.data, dispatch);
+        break;
+      case 'REDRAW':
+        redraw(command.data, dispatch);
+        break;
+    }
+  }
+
+  loop.subscribe("render", (getState, dispatch) => {
+    render($root, renderDpg(getState(), dispatch))
+  });
+
+
+
+
 }
+
+
+
