@@ -74,6 +74,15 @@ function xor(a, b) {
   return [a[0] ^ b[0], a[1] ^ b[1]];
 }
 
+function load(b, i) {
+  return [b[2 * i], b[(2 * i) + 1]]
+}
+
+function store(b, i, v) {
+  b[2 * i] = v[0]
+  b[(2 * i) + 1] = v[1]
+}
+
 function block(c, tweak, b, off) {
   let R = [
     38, 30, 50, 53, 48, 31, 43, 20, 34, 14, 15, 27, 26, 7, 58, 12,
@@ -90,9 +99,9 @@ function block(c, tweak, b, off) {
     x[i] = add(t[i], c[i]);
     c[8] = xor(c[8], c[i]);
   }
-  x[5] = add(x[5], tweak[0]);
-  x[6] = add(x[6], tweak[1]);
-  tweak[2] = xor(tweak[0], tweak[1]);
+  x[5] = add(x[5], load(tweak, 0));
+  x[6] = add(x[6], load(tweak, 1));
+  store(tweak, 2, xor(load(tweak, 0), load(tweak, 1)));
   for (let round = 1; round <= 18; round++) {
     let p = 16 - ((round & 1) << 4);
     for (let i = 0; i < 16; i++) {
@@ -103,13 +112,12 @@ function block(c, tweak, b, off) {
       x[m] = add(x[m], x[n]);
       x[n] = xor(shiftLeft(x[n], r), shiftRight(x[n], 64 - r));
       x[n] = xor(x[n], x[m]);
-      
     }
     for (var i = 0; i < 8; i++)  {
       x[i] = add(x[i], c[(round + i) % 9]);
     }
-    x[5] = add(x[5], tweak[round % 3]);
-    x[6] = add(x[6], tweak[(round + 1) % 3]);
+    x[5] = add(x[5], load(tweak, round % 3));
+    x[6] = add(x[6], load(tweak, (round + 1) % 3));
     x[7] = add(x[7], [0, round]);
   }
   for (let i = 0; i < 8; i++) {
@@ -118,19 +126,23 @@ function block(c, tweak, b, off) {
 }
 
 export function hashBytes(msg) {
-  let tweak = [[0, 32], [(0x80 + 0x40 + 0x4) << 24, 0]], c = [];
+  let tweak = new Uint32Array(
+    [0, 32, (0x80 + 0x40 + 0x4) << 24, 0, 0, 0]
+  );
+  let c = [];
   let buff = string2bytes("SHA3\x01\x00\x00\x00\x00\x02");
   block(c, tweak, buff, 0);
-  tweak = [[0, 0], [(0x40 + 0x30) << 24, 0]];
+
+  tweak = new Uint32Array([0, 0, (0x40 + 0x30) << 24, 0, 0, 0]);
   let len = msg.length, pos = 0;
   for(; len > 64; len -= 64, pos += 64) {
-    tweak[0][1] += 64;
+    tweak[1] += 64;
     block(c, tweak, msg, pos);
-    tweak[1][0] = 0x30 << 24;
+    tweak[2] = 0x30 << 24;
   }
-  tweak[0][1] += len; tweak[1][0] |= 0x80 << 24;
+  tweak[1] += len; tweak[2] |= 0x80 << 24;
   block(c, tweak, msg, pos);
-  tweak[0][1] = 8; tweak[1][0] = (0x80 + 0x40 + 0x3f) << 24;
+  tweak[1] = 8; tweak[2] = (0x80 + 0x40 + 0x3f) << 24;
   block(c, tweak, [], 0);
   let hash = [];
   for (let i = 0; i < 64; i++) {
