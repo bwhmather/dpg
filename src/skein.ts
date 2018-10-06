@@ -88,26 +88,26 @@ function asm(stdlib, foreign, memory) {
     ldi(ah ^ bh, al ^ bl);
   }
 
-  function block(c, tweak, b, off) {
+  function block(C, TWEAK, b, off) {
     let R = [
       38, 30, 50, 53, 48, 31, 43, 20, 34, 14, 15, 27, 26, 7, 58, 12,
       33, 49, 8, 42, 39, 14, 41, 27, 29, 26, 11, 9, 33, 35, 39, 51
     ];
-    let x = new Uint32Array(16);
-    let t = new Uint32Array(16);
-    ldi(0x55555555, 0x55555555); stb(c, 8);
+    let X = new Uint32Array(16);
+    let T = new Uint32Array(16);
+    ldi(0x55555555, 0x55555555); stb(C, 8);
     for (let i = 0; i < 8; i++) {
       for (let j = 7, k = off + i * 8 + 7; j >= 0; j--, k--) {
-        ldb(t, i); shl(8); stb(t, i);
-        t[2 * i + 1] |= b[k] & 255;  // TODO
+        ldb(T, i); shl(8); stb(T, i);
+        T[2 * i + 1] |= b[k] & 255;  // TODO
       }
-      ldb(t, i); ldb(c, i); add(); stb(x, i);
-      ldb(c, 8), ldb(c, i); xor(); stb(c, 8);
+      ldb(T, i); ldb(C, i); add(); stb(X, i);
+      ldb(C, 8), ldb(C, i); xor(); stb(C, 8);
     }
 
-    ldb(x, 5); ldb(tweak, 0); add(); stb(x, 5);
-    ldb(x, 6); ldb(tweak, 1); add(); stb(x, 6);
-    ldb(tweak, 0); ldb(tweak, 1); xor(); stb(tweak, 2)
+    ldb(X, 5); ldb(TWEAK, 0); add(); stb(X, 5);
+    ldb(X, 6); ldb(TWEAK, 1); add(); stb(X, 6);
+    ldb(TWEAK, 0); ldb(TWEAK, 1); xor(); stb(TWEAK, 2)
 
     for (let round = 1; round <= 18; round++) {
       let p = 16 - ((round & 1) << 4);
@@ -117,50 +117,50 @@ function asm(stdlib, foreign, memory) {
         let n = (1 + i + i) & 7;
         let r = R[p + i];
 
-        ldb(x, m); ldb(x, n); add(); stb(x, m);
+        ldb(X, m); ldb(X, n); add(); stb(X, m);
 
-        ldb(x, n); shl(r);
-        ldb(x, n); shr(64 - r);
-        xor(); stb(x, n);
+        ldb(X, n); shl(r);
+        ldb(X, n); shr(64 - r);
+        xor(); stb(X, n);
 
-        ldb(x, n); ldb(x, m); xor(); stb(x, n);
+        ldb(X, n); ldb(X, m); xor(); stb(X, n);
       }
       for (var i = 0; i < 8; i++)  {
-        ldb(x, i); ldb(c, (round + i) % 9); add(); stb(x, i);
+        ldb(X, i); ldb(C, (round + i) % 9); add(); stb(X, i);
       }
 
-      ldb(x, 5); ldb(tweak, round % 3); add(); stb(x, 5);
-      ldb(x, 6); ldb(tweak, (round + 1) % 3); add(); stb(x, 6);
-      ldb(x, 7); ldi(0, round); add(); stb(x, 7);
+      ldb(X, 5); ldb(TWEAK, round % 3); add(); stb(X, 5);
+      ldb(X, 6); ldb(TWEAK, (round + 1) % 3); add(); stb(X, 6);
+      ldb(X, 7); ldi(0, round); add(); stb(X, 7);
     }
     for (let i = 0; i < 8; i++) {
-      ldb(t, i); ldb(x, i); xor(); stb(c, i);
+      ldb(T, i); ldb(X, i); xor(); stb(C, i);
     }
   }
 
   function hashBytes(msg) {
-    let tweak = new Uint32Array(
+    let TWEAK = new Uint32Array(
       [0, 32, (0x80 + 0x40 + 0x4) << 24, 0, 0, 0]
     );
-    let c = new Uint32Array(18);
+    let C = new Uint32Array(18);
     let buff = new TextEncoder().encode("SHA3\x01\x00\x00\x00\x00\x02");
-    block(c, tweak, buff, 0);
+    block(C, TWEAK, buff, 0);
 
-    tweak = new Uint32Array([0, 0, (0x40 + 0x30) << 24, 0, 0, 0]);
+    TWEAK = new Uint32Array([0, 0, (0x40 + 0x30) << 24, 0, 0, 0]);
     let len = msg.length, pos = 0;
     for(; len > 64; len -= 64, pos += 64) {
-      tweak[1] += 64;
-      block(c, tweak, msg, pos);
-      tweak[2] = 0x30 << 24;
+      TWEAK[1] += 64;
+      block(C, TWEAK, msg, pos);
+      TWEAK[2] = 0x30 << 24;
     }
-    tweak[1] += len; tweak[2] |= 0x80 << 24;
-    block(c, tweak, msg, pos);
-    tweak[1] = 8; tweak[2] = (0x80 + 0x40 + 0x3f) << 24;
-    block(c, tweak, [], 0);
+    TWEAK[1] += len; TWEAK[2] |= 0x80 << 24;
+    block(C, TWEAK, msg, pos);
+    TWEAK[1] = 8; TWEAK[2] = (0x80 + 0x40 + 0x3f) << 24;
+    block(C, TWEAK, [], 0);
 
     let hash = [];
     for (let i = 0; i < 64; i++) {
-      ldb(c, i >> 3);
+      ldb(C, i >> 3);
       shr((i & 7) * 8);
       hash.push(peekl() & 255);
       pop();
