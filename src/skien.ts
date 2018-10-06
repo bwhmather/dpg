@@ -88,7 +88,7 @@ function block(c, tweak, b, off) {
     38, 30, 50, 53, 48, 31, 43, 20, 34, 14, 15, 27, 26, 7, 58, 12,
     33, 49, 8, 42, 39, 14, 41, 27, 29, 26, 11, 9, 33, 35, 39, 51
   ];
-  let x = []
+  let x = new Uint32Array(16);
   let t = new Uint32Array(16);
   c[8] = [0x55555555, 0x55555555];
   for (let i = 0; i < 8; i++) {
@@ -96,11 +96,11 @@ function block(c, tweak, b, off) {
       store(t, i, shiftLeft(load(t, i), 8));
       t[2 * i + 1] |= b[k] & 255;
     }
-    x[i] = add(load(t, i), c[i]);
+    store(x, i, add(load(t, i), c[i]));
     c[8] = xor(c[8], c[i]);
   }
-  x[5] = add(x[5], load(tweak, 0));
-  x[6] = add(x[6], load(tweak, 1));
+  store(x, 5, add(load(x, 5), load(tweak, 0)));
+  store(x, 6, add(load(x, 6), load(tweak, 1)));
   store(tweak, 2, xor(load(tweak, 0), load(tweak, 1)));
   for (let round = 1; round <= 18; round++) {
     let p = 16 - ((round & 1) << 4);
@@ -109,19 +109,22 @@ function block(c, tweak, b, off) {
       let m = 2 * ((i + (1 + i + i) * (i >> 2)) & 3);
       let n = (1 + i + i) & 7;
       let r = R[p + i];
-      x[m] = add(x[m], x[n]);
-      x[n] = xor(shiftLeft(x[n], r), shiftRight(x[n], 64 - r));
-      x[n] = xor(x[n], x[m]);
+      store(x, m, add(load(x, m), load(x, n)));
+      store(x, n, xor(
+        shiftLeft(load(x, n), r),
+        shiftRight(load(x, n), 64 - r)
+      ));
+      store(x, n, xor(load(x, n), load(x, m)));
     }
     for (var i = 0; i < 8; i++)  {
-      x[i] = add(x[i], c[(round + i) % 9]);
+      store(x, i, add(load(x, i), c[(round + i) % 9]));
     }
-    x[5] = add(x[5], load(tweak, round % 3));
-    x[6] = add(x[6], load(tweak, (round + 1) % 3));
-    x[7] = add(x[7], [0, round]);
+    store(x, 5, add(load(x, 5), load(tweak, round % 3)));
+    store(x, 6, add(load(x, 6), load(tweak, (round + 1) % 3)));
+    store(x, 7, add(load(x, 7), [0, round]));
   }
   for (let i = 0; i < 8; i++) {
-    c[i] = xor(load(t, i), x[i]);
+    c[i] = xor(load(t, i), load(x, i));
   }
 }
 
