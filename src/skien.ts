@@ -1,10 +1,3 @@
-// Implementation originally created by Thomas Mueller
-// [www.h2database.com/skein/];
-// Modified by John Plevyak [jplevyak at acm.org] for use in his password
-// generator
-// Slightly reformatted again for my original generator and then modernized
-// for this version.
-
 function string2bytes(s) {
   let b=[]
   for (let i=0; i < s.length; i++) {
@@ -21,20 +14,76 @@ function bytes2string(b) {
   return str;
 }
 
-function shiftLeft(x, n) {
-  if (x == null) {
-    return [0, 0];
-  }
-  if (n > 32) {
-    return [x[1] << (n-32), 0];
-  }
-  if (n == 32) {
-    return [x[1], 0];
-  }
-  if (n == 0) {
-    return x;
-  }
-  return [(x[0] << n) | (x[1] >>> (32 - n)), x[1] << n];
+let stack = new Uint32Array(16);
+let stackPointer = stack.length;
+
+
+function loadi(h, l) {
+  stackPointer -= 2;
+  stack[stackPointer] = h;
+  stack[stackPointer + 1] = l;
+}
+
+function peekh() {
+  return stack[stackPointer];
+}
+
+function peekl() {
+  return stack[stackPointer + 1];
+}
+
+function pop() {
+  stackPointer += 2;
+}
+
+function load(b, i) {
+  loadi(b[2 * i], b[(2 * i) + 1]);
+}
+
+function store(b, i) {
+  let h = peekh(), l = peekl(); pop();
+  b[2 * i] = h
+  b[(2 * i) + 1] = l
+}
+
+function shl(n) {
+  let h = peekh(), l = peekl(); pop();
+
+  if (n > 32) loadi(l << (n-32), 0)
+  else if (n == 32) loadi(l, 0)
+  else if (n == 0) loadi(h, l)
+  else loadi((h << n) | (l >>> (32 - n)), l << n);
+}
+
+function shr(n) {
+  let h = peekh(), l = peekl(); pop();
+
+  if (n > 32) loadi(0, h >>> (n - 32))
+  else if (n == 32) loadi(0, h);
+  else if (n == 0) loadi(h, l);
+  else loadi(h >>> n, (h << (32 - n)) | (l >>> n));
+}
+
+function add() {
+  let ah = peekh(), al = peekl(); pop();
+  let bh = peekh(), bl = peekl(); pop();
+
+  let lsw = (al & 0xffff) + (bl & 0xffff);
+  let msw = (al >>> 16) + (bl >>> 16) + (lsw >>> 16);
+  let l = ((msw & 0xffff) << 16) | (lsw & 0xffff);
+
+  lsw = (ah & 0xffff) + (bh & 0xffff) + (msw >>> 16);
+  msw = (ah >>> 16) + (bh >>> 16) + (lsw >>> 16);
+  let h = ((msw & 0xffff) << 16) | (lsw & 0xffff);
+
+  loadi(h, l);
+}
+
+function xor() {
+  let ah = peekh(), al = peekl(); pop();
+  let bh = peekh(), bl = peekl(); pop();
+
+  loadi(ah ^ bh, al ^ bl);
 }
 
 function shiftRight(x, n) {
@@ -54,35 +103,6 @@ function shiftRight(x, n) {
   return [x[0] >>> n, (x[0] << (32 - n)) | (x[1] >>> n)];
 }
 
-function add(x, y) {
-  if (y == null) {
-    return x;
-  }
-  let lsw = (x[1] & 0xffff) + (y[1] & 0xffff);
-  let msw = (x[1] >>> 16) + (y[1] >>> 16) + (lsw >>> 16);
-  let lowOrder = ((msw & 0xffff) << 16) | (lsw & 0xffff);
-
-  lsw = (x[0] & 0xffff) + (y[0] & 0xffff) + (msw >>>16);
-  msw = (x[0] >>> 16)+(y[0] >>> 16) + (lsw >>> 16);
-  let highOrder = ((msw & 0xffff) << 16) | (lsw & 0xffff);
-  return [highOrder,lowOrder];
-}
-
-function xor(a, b) {
-  if (b == null) {
-    return a;
-  }
-  return [a[0] ^ b[0], a[1] ^ b[1]];
-}
-
-function load(b, i) {
-  return [b[2 * i], b[(2 * i) + 1]]
-}
-
-function store(b, i, v) {
-  b[2 * i] = v[0]
-  b[(2 * i) + 1] = v[1]
-}
 
 function block(c, tweak, b, off) {
   let R = [
@@ -91,18 +111,20 @@ function block(c, tweak, b, off) {
   ];
   let x = new Uint32Array(16);
   let t = new Uint32Array(16);
-  store(c, 8, [0x55555555, 0x55555555]);
+  loadi(0x55555555, 0x55555555); store(c, 8);
   for (let i = 0; i < 8; i++) {
     for (let j = 7, k = off + i * 8 + 7; j >= 0; j--, k--) {
-      store(t, i, shiftLeft(load(t, i), 8));
-      t[2 * i + 1] |= b[k] & 255;
+      load(t, i); shl(8); store(t, i);
+      t[2 * i + 1] |= b[k] & 255;  // TODO
     }
-    store(x, i, add(load(t, i), load(c, i)));
-    store(c, 8, xor(load(c, 8), load(c, i)));
+    load(t, i); load(c, i); add(); store(x, i);
+    load(c, 8), load(c, i); xor(); store(c, 8);
   }
-  store(x, 5, add(load(x, 5), load(tweak, 0)));
-  store(x, 6, add(load(x, 6), load(tweak, 1)));
-  store(tweak, 2, xor(load(tweak, 0), load(tweak, 1)));
+
+  load(x, 5); load(tweak, 0); add(); store(x, 5);
+  load(x, 6); load(tweak, 1); add(); store(x, 6);
+  load(tweak, 0); load(tweak, 1); xor(); store(tweak, 2)
+
   for (let round = 1; round <= 18; round++) {
     let p = 16 - ((round & 1) << 4);
     for (let i = 0; i < 16; i++) {
@@ -110,22 +132,25 @@ function block(c, tweak, b, off) {
       let m = 2 * ((i + (1 + i + i) * (i >> 2)) & 3);
       let n = (1 + i + i) & 7;
       let r = R[p + i];
-      store(x, m, add(load(x, m), load(x, n)));
-      store(x, n, xor(
-        shiftLeft(load(x, n), r),
-        shiftRight(load(x, n), 64 - r)
-      ));
-      store(x, n, xor(load(x, n), load(x, m)));
+
+      load(x, m); load(x, n); add(); store(x, m);
+
+      load(x, n); shl(r);
+      load(x, n); shr(64 - r);
+      xor(); store(x, n);
+
+      load(x, n); load(x, m); xor(); store(x, n);
     }
     for (var i = 0; i < 8; i++)  {
-      store(x, i, add(load(x, i), load(c, (round + i) % 9)));
+      load(x, i); load(c, (round + i) % 9); add(); store(x, i);
     }
-    store(x, 5, add(load(x, 5), load(tweak, round % 3)));
-    store(x, 6, add(load(x, 6), load(tweak, (round + 1) % 3)));
-    store(x, 7, add(load(x, 7), [0, round]));
+
+    load(x, 5); load(tweak, round % 3); add(); store(x, 5);
+    load(x, 6); load(tweak, (round + 1) % 3); add(); store(x, 6);
+    load(x, 7); loadi(0, round); add(); store(x, 7);
   }
   for (let i = 0; i < 8; i++) {
-    store(c, i, xor(load(t, i), load(x, i)));
+    load(t, i); load(x, i); xor(); store(c, i);
   }
 }
 
@@ -150,7 +175,9 @@ export function hashBytes(msg) {
   block(c, tweak, [], 0);
   let hash = [];
   for (let i = 0; i < 64; i++) {
-    var b = shiftRight(load(c, i >> 3), (i & 7) * 8)[1] & 255;
+    load(c, i >> 3);
+    let h = peekh(), l = peekl(); pop();
+    var b = shiftRight([h, l], (i & 7) * 8)[1] & 255;
     hash.push(b);
   }
   return hash;
