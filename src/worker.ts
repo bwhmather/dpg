@@ -1,4 +1,4 @@
-import { hashString } from "./skien";
+import { hashString } from "./skein";
 
 
 const CHARACTERS = {
