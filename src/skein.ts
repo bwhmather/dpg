@@ -1,19 +1,3 @@
-function string2bytes(s) {
-  let b=[]
-  for (let i=0; i < s.length; i++) {
-    b.push(s.charCodeAt(i));
-  }
-  return new Uint8Array(b);
-}
-
-function bytes2string(b) {
-  let str = "";
-  for(let i = 0; i < b.length; i++) {
-    str += String.fromCharCode(b[i]);
-  }
-  return str;
-}
-
 let stack = new Uint32Array(16);
 let stackPointer = stack.length;
 
@@ -156,7 +140,7 @@ export function hashBytes(msg) {
     [0, 32, (0x80 + 0x40 + 0x4) << 24, 0, 0, 0]
   );
   let c = new Uint32Array(18);
-  let buff = string2bytes("SHA3\x01\x00\x00\x00\x00\x02");
+  let buff = new TextEncoder().encode("SHA3\x01\x00\x00\x00\x00\x02");
   block(c, tweak, buff, 0);
 
   tweak = new Uint32Array([0, 0, (0x40 + 0x30) << 24, 0, 0, 0]);
@@ -181,6 +165,6 @@ export function hashBytes(msg) {
   return hash;
 }
 
-export function hashString(string) {
-  return hashBytes(string2bytes(string));
+export function hashString(str) {
+  return hashBytes(new TextEncoder().encode(str));
 }
