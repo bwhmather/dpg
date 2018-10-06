@@ -101,24 +101,6 @@ function xor() {
   ldi(ah ^ bh, al ^ bl);
 }
 
-function shiftRight(x, n) {
-  if (x == null) {
-    return [0, 0];
-  }
-
-  if (n > 32) {
-    return [0, x[0] >>> (n-32)];
-  }
-  if (n == 32) {
-    return [0, x[0]];
-  }
-  if (n == 0) {
-    return x;
-  }
-  return [x[0] >>> n, (x[0] << (32 - n)) | (x[1] >>> n)];
-}
-
-
 function block(c, tweak, b, off) {
   let R = [
     38, 30, 50, 53, 48, 31, 43, 20, 34, 14, 15, 27, 26, 7, 58, 12,
@@ -188,12 +170,13 @@ export function hashBytes(msg) {
   block(c, tweak, msg, pos);
   tweak[1] = 8; tweak[2] = (0x80 + 0x40 + 0x3f) << 24;
   block(c, tweak, [], 0);
+
   let hash = [];
   for (let i = 0; i < 64; i++) {
     ldb(c, i >> 3);
-    let h = peekh(), l = peekl(); pop();
-    var b = shiftRight([h, l], (i & 7) * 8)[1] & 255;
-    hash.push(b);
+    shr((i & 7) * 8);
+    hash.push(peekl() & 255);
+    pop();
   }
   return hash;
 }
