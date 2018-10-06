@@ -10,7 +10,7 @@ function string2bytes(s) {
   for (let i=0; i < s.length; i++) {
     b.push(s.charCodeAt(i));
   }
-  return b;
+  return new Uint8Array(b);
 }
 
 function bytes2string(b) {
