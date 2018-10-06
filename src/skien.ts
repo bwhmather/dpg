@@ -41,6 +41,7 @@ function shiftRight(x, n) {
   if (x == null) {
     return [0, 0];
   }
+
   if (n > 32) {
     return [0, x[0] >>> (n-32)];
   }
@@ -90,14 +91,14 @@ function block(c, tweak, b, off) {
   ];
   let x = new Uint32Array(16);
   let t = new Uint32Array(16);
-  c[8] = [0x55555555, 0x55555555];
+  store(c, 8, [0x55555555, 0x55555555]);
   for (let i = 0; i < 8; i++) {
     for (let j = 7, k = off + i * 8 + 7; j >= 0; j--, k--) {
       store(t, i, shiftLeft(load(t, i), 8));
       t[2 * i + 1] |= b[k] & 255;
     }
-    store(x, i, add(load(t, i), c[i]));
-    c[8] = xor(c[8], c[i]);
+    store(x, i, add(load(t, i), load(c, i)));
+    store(c, 8, xor(load(c, 8), load(c, i)));
   }
   store(x, 5, add(load(x, 5), load(tweak, 0)));
   store(x, 6, add(load(x, 6), load(tweak, 1)));
@@ -117,14 +118,14 @@ function block(c, tweak, b, off) {
       store(x, n, xor(load(x, n), load(x, m)));
     }
     for (var i = 0; i < 8; i++)  {
-      store(x, i, add(load(x, i), c[(round + i) % 9]));
+      store(x, i, add(load(x, i), load(c, (round + i) % 9)));
     }
     store(x, 5, add(load(x, 5), load(tweak, round % 3)));
     store(x, 6, add(load(x, 6), load(tweak, (round + 1) % 3)));
     store(x, 7, add(load(x, 7), [0, round]));
   }
   for (let i = 0; i < 8; i++) {
-    c[i] = xor(load(t, i), load(x, i));
+    store(c, i, xor(load(t, i), load(x, i)));
   }
 }
 
@@ -132,7 +133,7 @@ export function hashBytes(msg) {
   let tweak = new Uint32Array(
     [0, 32, (0x80 + 0x40 + 0x4) << 24, 0, 0, 0]
   );
-  let c = [];
+  let c = new Uint32Array(18);
   let buff = string2bytes("SHA3\x01\x00\x00\x00\x00\x02");
   block(c, tweak, buff, 0);
 
@@ -149,7 +150,7 @@ export function hashBytes(msg) {
   block(c, tweak, [], 0);
   let hash = [];
   for (let i = 0; i < 64; i++) {
-    var b = shiftRight(c[i >> 3], (i & 7) * 8)[1] & 255;
+    var b = shiftRight(load(c, i >> 3), (i & 7) * 8)[1] & 255;
     hash.push(b);
   }
   return hash;
