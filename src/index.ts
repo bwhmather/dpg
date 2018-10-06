@@ -17,10 +17,24 @@ export function run($root) {
     enableSymbols: true,
   };
 
-  let output = {};
+  let output = {
+    password: null,
+  };
 
   function recalc() {
+    output.password = null;
 
+    let worker = new Worker('./dist/worker.js');
+
+    worker.onmessage = (msg) => {
+      output.password = msg.data;
+      redraw();
+    };
+
+    worker.postMessage({
+      details: details,
+      settings: settings,
+    });
   }
 
 
@@ -72,7 +86,15 @@ export function run($root) {
   }
 
   function renderOutput() {
-    return "output";
+    return h(
+      "fieldset", {},
+      h("legend", {}, "Output"),
+      input("Generated Password", {
+        "type": "text",
+        "value": output.password,
+        "readonly": "readonly",
+      }),
+    );
   }
 
   function renderSettings() {
