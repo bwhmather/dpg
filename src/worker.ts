@@ -1,4 +1,4 @@
-import { hashString } from "./skein";
+import { hashBytes } from "./skein";
 
 
 const CHARACTERS = {
@@ -61,7 +61,7 @@ function generate(details, settings) {
   );
 
   /* Hash the string to produce a seed for the password generator */
-  var hash = hashString(input);
+  var hash = hashBytes(new TextEncoder().encode(input));
 
   /* Generate password from seed */
   var password = generatePassword(hash, settings);

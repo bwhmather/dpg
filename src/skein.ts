@@ -164,7 +164,3 @@ export function hashBytes(msg) {
   }
   return hash;
 }
-
-export function hashString(str) {
-  return hashBytes(new TextEncoder().encode(str));
-}
