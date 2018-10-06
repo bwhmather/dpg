@@ -166,8 +166,6 @@ export function run($root) {
       redrawQueued = true;
       window.requestAnimationFrame(() => {
         redrawQueued = false;
-        console.log(details);
-        console.log(settings);
         render($root, renderDpg())
       });
     }
