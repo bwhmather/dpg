@@ -17,53 +17,66 @@ function bytes2string(b) {
 let stack = new Uint32Array(16);
 let stackPointer = stack.length;
 
-
-function loadi(h, l) {
+// Loads its two arguments as the high and low 32 bits of a new entry at the
+// top of the stack.
+function ldi(h, l) {
   stackPointer -= 2;
   stack[stackPointer] = h;
   stack[stackPointer + 1] = l;
 }
 
+// Returns the high 32 bits of the 64 bit value at the top of the stack.
 function peekh() {
   return stack[stackPointer];
 }
 
+// Returns the low 32 bits of the 64 bit value at the top of the stack.
 function peekl() {
   return stack[stackPointer + 1];
 }
 
-function pop() {
-  stackPointer += 2;
+// Push the 64 bit value at offset `i` in buffer `b` to the top of the stack
+function ldb(b, i) {
+  ldi(b[2 * i], b[(2 * i) + 1]);
 }
 
-function load(b, i) {
-  loadi(b[2 * i], b[(2 * i) + 1]);
-}
-
-function store(b, i) {
+// Pop the 64 bit value at the top of the stack and save it at offset `i` in
+// the buffer pointed to by `b`.
+function stb(b, i) {
   let h = peekh(), l = peekl(); pop();
   b[2 * i] = h
   b[(2 * i) + 1] = l
 }
 
+// Discards the value that is currently at the top of the stack.
+function pop() {
+  stackPointer += 2;
+}
+
+// Replaces the value at the top of the stack with the same value shifted left
+// by `n` bits.
 function shl(n) {
   let h = peekh(), l = peekl(); pop();
 
-  if (n > 32) loadi(l << (n-32), 0)
-  else if (n == 32) loadi(l, 0)
-  else if (n == 0) loadi(h, l)
-  else loadi((h << n) | (l >>> (32 - n)), l << n);
+  if (n > 32) ldi(l << (n-32), 0)
+  else if (n == 32) ldi(l, 0)
+  else if (n == 0) ldi(h, l)
+  else ldi((h << n) | (l >>> (32 - n)), l << n);
 }
 
+// Replaces the value at the top of the stack with the same value shifted right
+// by `n` bits.
 function shr(n) {
   let h = peekh(), l = peekl(); pop();
 
-  if (n > 32) loadi(0, h >>> (n - 32))
-  else if (n == 32) loadi(0, h);
-  else if (n == 0) loadi(h, l);
-  else loadi(h >>> n, (h << (32 - n)) | (l >>> n));
+  if (n > 32) ldi(0, h >>> (n - 32))
+  else if (n == 32) ldi(0, h);
+  else if (n == 0) ldi(h, l);
+  else ldi(h >>> n, (h << (32 - n)) | (l >>> n));
 }
 
+// Pops the top two 64 bit values from the top of the stack and adds them,
+// saving the result as the new top item.
 function add() {
   let ah = peekh(), al = peekl(); pop();
   let bh = peekh(), bl = peekl(); pop();
@@ -76,14 +89,16 @@ function add() {
   msw = (ah >>> 16) + (bh >>> 16) + (lsw >>> 16);
   let h = ((msw & 0xffff) << 16) | (lsw & 0xffff);
 
-  loadi(h, l);
+  ldi(h, l);
 }
 
+// Pops the top two 64 bit values from the top of the stack and bitwise
+// exclusive ors them, saving the result as the new top item.
 function xor() {
   let ah = peekh(), al = peekl(); pop();
   let bh = peekh(), bl = peekl(); pop();
 
-  loadi(ah ^ bh, al ^ bl);
+  ldi(ah ^ bh, al ^ bl);
 }
 
 function shiftRight(x, n) {
@@ -111,19 +126,19 @@ function block(c, tweak, b, off) {
   ];
   let x = new Uint32Array(16);
   let t = new Uint32Array(16);
-  loadi(0x55555555, 0x55555555); store(c, 8);
+  ldi(0x55555555, 0x55555555); stb(c, 8);
   for (let i = 0; i < 8; i++) {
     for (let j = 7, k = off + i * 8 + 7; j >= 0; j--, k--) {
-      load(t, i); shl(8); store(t, i);
+      ldb(t, i); shl(8); stb(t, i);
       t[2 * i + 1] |= b[k] & 255;  // TODO
     }
-    load(t, i); load(c, i); add(); store(x, i);
-    load(c, 8), load(c, i); xor(); store(c, 8);
+    ldb(t, i); ldb(c, i); add(); stb(x, i);
+    ldb(c, 8), ldb(c, i); xor(); stb(c, 8);
   }
 
-  load(x, 5); load(tweak, 0); add(); store(x, 5);
-  load(x, 6); load(tweak, 1); add(); store(x, 6);
-  load(tweak, 0); load(tweak, 1); xor(); store(tweak, 2)
+  ldb(x, 5); ldb(tweak, 0); add(); stb(x, 5);
+  ldb(x, 6); ldb(tweak, 1); add(); stb(x, 6);
+  ldb(tweak, 0); ldb(tweak, 1); xor(); stb(tweak, 2)
 
   for (let round = 1; round <= 18; round++) {
     let p = 16 - ((round & 1) << 4);
@@ -133,24 +148,24 @@ function block(c, tweak, b, off) {
       let n = (1 + i + i) & 7;
       let r = R[p + i];
 
-      load(x, m); load(x, n); add(); store(x, m);
+      ldb(x, m); ldb(x, n); add(); stb(x, m);
 
-      load(x, n); shl(r);
-      load(x, n); shr(64 - r);
-      xor(); store(x, n);
+      ldb(x, n); shl(r);
+      ldb(x, n); shr(64 - r);
+      xor(); stb(x, n);
 
-      load(x, n); load(x, m); xor(); store(x, n);
+      ldb(x, n); ldb(x, m); xor(); stb(x, n);
     }
     for (var i = 0; i < 8; i++)  {
-      load(x, i); load(c, (round + i) % 9); add(); store(x, i);
+      ldb(x, i); ldb(c, (round + i) % 9); add(); stb(x, i);
     }
 
-    load(x, 5); load(tweak, round % 3); add(); store(x, 5);
-    load(x, 6); load(tweak, (round + 1) % 3); add(); store(x, 6);
-    load(x, 7); loadi(0, round); add(); store(x, 7);
+    ldb(x, 5); ldb(tweak, round % 3); add(); stb(x, 5);
+    ldb(x, 6); ldb(tweak, (round + 1) % 3); add(); stb(x, 6);
+    ldb(x, 7); ldi(0, round); add(); stb(x, 7);
   }
   for (let i = 0; i < 8; i++) {
-    load(t, i); load(x, i); xor(); store(c, i);
+    ldb(t, i); ldb(x, i); xor(); stb(c, i);
   }
 }
 
@@ -175,7 +190,7 @@ export function hashBytes(msg) {
   block(c, tweak, [], 0);
   let hash = [];
   for (let i = 0; i < 64; i++) {
-    load(c, i >> 3);
+    ldb(c, i >> 3);
     let h = peekh(), l = peekl(); pop();
     var b = shiftRight([h, l], (i & 7) * 8)[1] & 255;
     hash.push(b);
