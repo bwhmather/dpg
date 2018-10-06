@@ -89,14 +89,14 @@ function block(c, tweak, b, off) {
     33, 49, 8, 42, 39, 14, 41, 27, 29, 26, 11, 9, 33, 35, 39, 51
   ];
   let x = []
-  let t = [];
+  let t = new Uint32Array(16);
   c[8] = [0x55555555, 0x55555555];
   for (let i = 0; i < 8; i++) {
     for (let j = 7, k = off + i * 8 + 7; j >= 0; j--, k--) {
-      t[i] = shiftLeft(t[i], 8);
-      t[i][1] |=  b[k] & 255;
+      store(t, i, shiftLeft(load(t, i), 8));
+      t[2 * i + 1] |= b[k] & 255;
     }
-    x[i] = add(t[i], c[i]);
+    x[i] = add(load(t, i), c[i]);
     c[8] = xor(c[8], c[i]);
   }
   x[5] = add(x[5], load(tweak, 0));
@@ -121,7 +121,7 @@ function block(c, tweak, b, off) {
     x[7] = add(x[7], [0, round]);
   }
   for (let i = 0; i < 8; i++) {
-    c[i] = xor(t[i], x[i]);
+    c[i] = xor(load(t, i), x[i]);
   }
 }
 
