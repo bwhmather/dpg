@@ -1,6 +1,10 @@
 function asm(stdlib, foreign, memory) {
   "use asm";
 
+  let TWEAK = new Uint32Array(memory, 0, 6);
+  let C = new Uint32Array(memory, 4 * 6, 18);
+  let BUFF = new Uint8Array(memory, 4 * 6 + 4 * 18, 64);
+
   let stack = new Uint32Array(16);
   let stackPointer = stack.length;
 
@@ -88,7 +92,7 @@ function asm(stdlib, foreign, memory) {
     ldi(ah ^ bh, al ^ bl);
   }
 
-  function block(C, TWEAK, b, off) {
+  function block() {
     let R = [
       38, 30, 50, 53, 48, 31, 43, 20, 34, 14, 15, 27, 26, 7, 58, 12,
       33, 49, 8, 42, 39, 14, 41, 27, 29, 26, 11, 9, 33, 35, 39, 51
@@ -97,9 +101,9 @@ function asm(stdlib, foreign, memory) {
     let T = new Uint32Array(16);
     ldi(0x55555555, 0x55555555); stb(C, 8);
     for (let i = 0; i < 8; i++) {
-      for (let j = 7, k = off + i * 8 + 7; j >= 0; j--, k--) {
+      for (let j = 7, k = i * 8 + 7; j >= 0; j--, k--) {
         ldb(T, i); shl(8); stb(T, i);
-        T[2 * i + 1] |= b[k] & 255;  // TODO
+        T[2 * i + 1] |= BUFF[k] & 255;  // TODO
       }
       ldb(T, i); ldb(C, i); add(); stb(X, i);
       ldb(C, 8), ldb(C, i); xor(); stb(C, 8);
@@ -138,38 +142,8 @@ function asm(stdlib, foreign, memory) {
     }
   }
 
-  function hashBytes(msg) {
-    let TWEAK = new Uint32Array(
-      [0, 32, (0x80 + 0x40 + 0x4) << 24, 0, 0, 0]
-    );
-    let C = new Uint32Array(18);
-    let buff = new TextEncoder().encode("SHA3\x01\x00\x00\x00\x00\x02");
-    block(C, TWEAK, buff, 0);
-
-    TWEAK = new Uint32Array([0, 0, (0x40 + 0x30) << 24, 0, 0, 0]);
-    let len = msg.length, pos = 0;
-    for(; len > 64; len -= 64, pos += 64) {
-      TWEAK[1] += 64;
-      block(C, TWEAK, msg, pos);
-      TWEAK[2] = 0x30 << 24;
-    }
-    TWEAK[1] += len; TWEAK[2] |= 0x80 << 24;
-    block(C, TWEAK, msg, pos);
-    TWEAK[1] = 8; TWEAK[2] = (0x80 + 0x40 + 0x3f) << 24;
-    block(C, TWEAK, [], 0);
-
-    let hash = [];
-    for (let i = 0; i < 64; i++) {
-      ldb(C, i >> 3);
-      shr((i & 7) * 8);
-      hash.push(peekl() & 255);
-      pop();
-    }
-    return hash;
-  }
-
   return {
-    hash: hashBytes,
+    block: block,
   }
 }
 
@@ -178,5 +152,44 @@ export function hashBytes(bytes) {
   let foreign = []
   let memory = new ArrayBuffer(0x100000);
 
-  return asm(stdlib, foreign, memory).hash(bytes);
+  let tweak = new Uint32Array(memory, 0, 6);
+  let c = new Uint32Array(memory, 4 * 6, 18);
+  let buff = new Uint8Array(memory, 4 * 6 + 4 * 18, 64);
+
+  let mod = asm(stdlib, foreign, memory)
+
+  tweak.set([0, 32, (0x80 + 0x40 + 0x4) << 24, 0, 0, 0])
+  buff.set(new TextEncoder().encode("SHA3\x01\x00\x00\x00\x00\x02"));
+  mod.block();
+
+  tweak.set([0, 0, (0x40 + 0x30) << 24, 0, 0, 0]);
+  let len = bytes.length, pos = 0;
+  for(; len > 64; len -= 64, pos += 64) {
+    tweak[1] += 64;
+    buff.set(bytes.subarray(pos, pos + 64))
+    mod.block();
+    tweak[2] = 0x30 << 24;
+  }
+
+  tweak[1] += len; tweak[2] |= 0x80 << 24;
+  buff.fill(0);
+  buff.set(bytes.subarray(pos, pos + 64))
+  mod.block();
+
+  tweak[1] = 8; tweak[2] = (0x80 + 0x40 + 0x3f) << 24;
+  buff.fill(0);
+  mod.block();
+
+  let hash = [];
+  for (let i = 0; i < 16; i += 2) {
+    hash.push((c[i + 1] >> 0) & 0xff);
+    hash.push((c[i + 1] >> 8) & 0xff);
+    hash.push((c[i + 1] >> 16) & 0xff);
+    hash.push((c[i + 1] >> 24) & 0xff);
+    hash.push((c[i] >> 0) & 0xff);
+    hash.push((c[i] >> 6) & 0xff);
+    hash.push((c[i] >> 16) & 0xff);
+    hash.push((c[i] >> 24) & 0xff);
+  }
+  return hash;
 }
