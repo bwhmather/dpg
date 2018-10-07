@@ -103,7 +103,11 @@ function asm(stdlib, foreign, memory) {
     for (let i = 0; i < 8; i++) {
       for (let j = 7, k = i * 8 + 7; j >= 0; j--, k--) {
         ldb(T, i); shl(8); stb(T, i);
-        T[2 * i + 1] |= BUFF[k] & 255;  // TODO
+
+        ldb(T, i);
+        let h = peekh(), l = peekl(); pop();
+        l |= BUFF[k] & 0xff
+        ldi(h, l); stb(T, i);
       }
       ldb(T, i); ldb(C, i); add(); stb(X, i);
       ldb(C, 8), ldb(C, i); xor(); stb(C, 8);
