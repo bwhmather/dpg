@@ -5,6 +5,9 @@ function asm(stdlib, foreign, memory) {
   let C = new Uint32Array(memory, 4 * 6, 18);
   let BUFF = new Uint8Array(memory, 4 * 6 + 4 * 18, 64);
 
+  let X = new Uint32Array(16);
+  let T = new Uint32Array(16);
+
   let stack = new Uint32Array(16);
   let stackPointer = stack.length;
 
@@ -97,8 +100,8 @@ function asm(stdlib, foreign, memory) {
       38, 30, 50, 53, 48, 31, 43, 20, 34, 14, 15, 27, 26, 7, 58, 12,
       33, 49, 8, 42, 39, 14, 41, 27, 29, 26, 11, 9, 33, 35, 39, 51
     ];
-    let X = new Uint32Array(16);
-    let T = new Uint32Array(16);
+    X.fill(0);
+    T.fill(0);
     ldi(0x55555555, 0x55555555); stb(C, 8);
     for (let i = 0; i < 8; i++) {
       for (let j = 7, k = i * 8 + 7; j >= 0; j--, k--) {
