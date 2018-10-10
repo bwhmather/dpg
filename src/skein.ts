@@ -19,83 +19,98 @@ function asm(stdlib, foreign, memory) {
   const X = 160  // (8 * 3) + (8 * 9) + 64;
   const T = 224  // (8 * 3) + (8 * 9) + 64 + (8 * 8);
 
-  const STACK = 288  // (8 * 3) + (8 * 9) + 64 + (8 * 8) + (8 * 8);
-  let STACK_POINTER = 0;
+  let STACK = 288  // (8 * 3) + (8 * 9) + 64 + (8 * 8) + (8 * 8);
 
   // Loads its two arguments as the high and low 32 bits of a new entry at the
   // top of the stack.
   function ldi(h, l) {
-    STACK_POINTER += 2;
-    HEAP32[(STACK / 4) + STACK_POINTER] = h;
-    HEAP32[(STACK / 4) + STACK_POINTER + 1] = l;
+    h = h | 0;
+    l = l | 0;
+
+    STACK = STACK + 8 | 0;
+    HEAP32[STACK >> 2] = h;
+    HEAP32[STACK + 4 >> 2] = l;
   }
 
   // Returns the high 32 bits of the 64 bit value at the top of the stack.
   function peekh() {
-    return HEAP32[(STACK / 4) + STACK_POINTER];
+    return HEAP32[STACK >> 2] | 0;
   }
 
   // Returns the low 32 bits of the 64 bit value at the top of the stack.
   function peekl() {
-    return HEAP32[(STACK / 4) + STACK_POINTER + 1];
+    return HEAP32[STACK + 4 >> 2] | 0;
   }
 
   // Push the 64 bit value at offset `i` in buffer `b` to the top of the stack
   function ldb(b, i) {
+    b = b | 0;
+    i = i | 0;
+
     ldi(
-      HEAP32[b / 4 + 2 * i],
-      HEAP32[b / 4 + 2 * i + 1],
+      HEAP32[b + (8 * i | 0) >> 2] | 0,
+      HEAP32[b + (8 * i | 0) + 4 >> 2] | 0,
     );
   }
 
   // Pop the 64 bit value at the top of the stack and save it at offset `i` in
   // the buffer pointed to by `b`.
   function stb(b, i) {
-    let h = peekh(), l = peekl(); pop();
-    HEAP32[b / 4 + 2 * i] = h
-    HEAP32[b / 4 + 2 * i + 1] = l
+    b = b | 0;
+    i = i | 0;
+
+    let h = 0, l = 0;
+    h = peekh() | 0; l = peekl() | 0; pop();
+
+    HEAP32[b + (8 * i | 0) >> 2] = h
+    HEAP32[b + (8 * i | 0) + 4 >> 2] = l
   }
 
   // Discards the value that is currently at the top of the stack.
   function pop() {
-    STACK_POINTER -= 2;
+    STACK = STACK - 8 | 0;
   }
 
   // Replaces the value at the top of the stack with the same value shifted left
   // by `n` bits.
   function shl(n) {
-    let h = peekh(), l = peekl(); pop();
+    n = n | 0;
 
-    if (n > 32) ldi(l << (n-32), 0)
-    else if (n == 32) ldi(l, 0)
-    else if (n == 0) ldi(h, l)
+    let h = 0, l = 0;
+    h = peekh() | 0; l = peekl() | 0; pop();
+
+    if ((n | 0) >= (32 | 0)) ldi(l << (n - 32), 0)
     else ldi((h << n) | (l >>> (32 - n)), l << n);
   }
 
   // Replaces the value at the top of the stack with the same value shifted right
   // by `n` bits.
   function shr(n) {
-    let h = peekh(), l = peekl(); pop();
+    n = n | 0;
 
-    if (n > 32) ldi(0, h >>> (n - 32))
-    else if (n == 32) ldi(0, h);
-    else if (n == 0) ldi(h, l);
+    let h = 0, l = 0;
+    h = peekh() | 0; l = peekl() | 0; pop();
+
+    if ((n | 0) >= (32 | 0)) ldi(0, h >>> (n - 32))
     else ldi(h >>> n, (h << (32 - n)) | (l >>> n));
   }
 
   // Pops the top two 64 bit values from the top of the stack and adds them,
   // saving the result as the new top item.
   function add() {
-    let ah = peekh(), al = peekl(); pop();
-    let bh = peekh(), bl = peekl(); pop();
+    let ah = 0, al = 0, bh = 0, bl = 0;
+    let lsw = 0, msw = 0, l = 0, h = 0;
 
-    let lsw = (al & 0xffff) + (bl & 0xffff);
-    let msw = (al >>> 16) + (bl >>> 16) + (lsw >>> 16);
-    let l = ((msw & 0xffff) << 16) | (lsw & 0xffff);
+    ah = peekh() | 0; al = peekl() | 0; pop();
+    bh = peekh() | 0; bl = peekl() | 0; pop();
 
-    lsw = (ah & 0xffff) + (bh & 0xffff) + (msw >>> 16);
-    msw = (ah >>> 16) + (bh >>> 16) + (lsw >>> 16);
-    let h = ((msw & 0xffff) << 16) | (lsw & 0xffff);
+    lsw = (al & 0xffff) + (bl & 0xffff) | 0;
+    msw = (al >>> 16) + (bl >>> 16) + (lsw >>> 16) | 0;
+    l = ((msw & 0xffff) << 16) | (lsw & 0xffff);
+
+    lsw = (ah & 0xffff) + (bh & 0xffff) + (msw >>> 16) | 0;
+    msw = (ah >>> 16) + (bh >>> 16) + (lsw >>> 16) | 0;
+    h = ((msw & 0xffff) << 16) | (lsw & 0xffff);
 
     ldi(h, l);
   }
