@@ -14,12 +14,13 @@ function asm(stdlib, foreign, memory) {
   const C = 24  // (8 * 3);
   // The input buffer.  This is a 64 byte long byte array.
   const BUFF = 96  // (8 * 3) + (8 * 9);
+  const R = 160 // (8 * 3) + (8 * 9) + 64;
 
   // Intermediate arrays, each containing 8 64 bit numbers.
-  const X = 160  // (8 * 3) + (8 * 9) + 64;
-  const T = 224  // (8 * 3) + (8 * 9) + 64 + (8 * 8);
+  const X = 192  // (8 * 3) + (8 * 9) + 64 + 32;
+  const T = 256  // (8 * 3) + (8 * 9) + 64 + 32 + (8 * 8);
 
-  let STACK = 288  // (8 * 3) + (8 * 9) + 64 + (8 * 8) + (8 * 8);
+  let STACK = 320  // (8 * 3) + (8 * 9) + 64 + (8 * 8) + (8 * 8);
 
   // Loads its two arguments as the high and low 32 bits of a new entry at the
   // top of the stack.
@@ -118,17 +119,15 @@ function asm(stdlib, foreign, memory) {
   // Pops the top two 64 bit values from the top of the stack and bitwise
   // exclusive ors them, saving the result as the new top item.
   function xor() {
-    let ah = peekh(), al = peekl(); pop();
-    let bh = peekh(), bl = peekl(); pop();
+    let ah = 0, al = 0, bh = 0, bl = 0;
+    ah = peekh() | 0; al = peekl() | 0; pop();
+    bh = peekh() | 0; bl = peekl() | 0; pop();
 
     ldi(ah ^ bh, al ^ bl);
   }
 
   function block() {
-    let R = [
-      38, 30, 50, 53, 48, 31, 43, 20, 34, 14, 15, 27, 26, 7, 58, 12,
-      33, 49, 8, 42, 39, 14, 41, 27, 29, 26, 11, 9, 33, 35, 39, 51
-    ];
+
 
     // Zero out the X and T arrays.
     for (let i = 0; i < 8; i++) {
@@ -160,7 +159,7 @@ function asm(stdlib, foreign, memory) {
         // m: 0, 2, 4, 6, 2, 0, 6, 4, 4, 6, 0, 2, 6, 4, 2, 0
         let m = 2 * ((i + (1 + i + i) * (i >> 2)) & 3);
         let n = (1 + i + i) & 7;
-        let r = R[p + i];
+        let r = HEAP8[R + p + i];
 
         ldb(X, m); ldb(X, n); add(); stb(X, m);
 
@@ -199,10 +198,17 @@ export function hashBytes(bytes) {
   let tweak = new Uint32Array(memory, 0, 6);
   let c = new Uint32Array(memory, 4 * 6, 18);
   let buff = new Uint8Array(memory, 4 * 6 + 4 * 18, 64);
+  let r = new Uint8Array(memory, 4 * 6 + 4 * 18 + 64, 32);
 
   let mod = asm(stdlib, foreign, memory)
 
-  tweak.set([0, 32, (0x80 + 0x40 + 0x4) << 24, 0, 0, 0])
+  // Deprecated constants from original submission.
+  r.set([
+    38, 30, 50, 53, 48, 31, 43, 20, 34, 14, 15, 27, 26, 7, 58, 12,
+    33, 49, 8, 42, 39, 14, 41, 27, 29, 26, 11, 9, 33, 35, 39, 51
+  ]);
+
+  tweak.set([0, 32, (0x80 + 0x40 + 0x4) << 24, 0, 0, 0]);
   buff.set(new TextEncoder().encode("SHA3\x01\x00\x00\x00\x00\x02"));
   mod.block();
 
