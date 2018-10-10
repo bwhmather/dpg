@@ -11,15 +11,15 @@ function asm(stdlib, foreign, memory) {
   // The accumulator array.  This stores the state that is updated by with each
   // block.  A nine word long array of 64 bit integers.  The first eight words
   // are returned as the result of the hash operation.
-  const C = (8 * 3);
+  const C = 24  // (8 * 3);
   // The input buffer.  This is a 64 byte long byte array.
-  const BUFF = (8 * 3) + (8 * 9);
+  const BUFF = 96  // (8 * 3) + (8 * 9);
 
   // Intermediate arrays, each containing 8 64 bit numbers.
-  const X = (8 * 3) + (8 * 9) + 64;
-  const T = (8 * 3) + (8 * 9) + 64 + (8 * 8);
+  const X = 160  // (8 * 3) + (8 * 9) + 64;
+  const T = 224  // (8 * 3) + (8 * 9) + 64 + (8 * 8);
 
-  const STACK = (8 * 3) + (8 * 9) + 64 + (8 * 8) + (8 * 8);
+  const STACK = 288  // (8 * 3) + (8 * 9) + 64 + (8 * 8) + (8 * 8);
   let STACK_POINTER = 0;
 
   // Loads its two arguments as the high and low 32 bits of a new entry at the
