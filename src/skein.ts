@@ -1,50 +1,64 @@
 function asm(stdlib, foreign, memory) {
   "use asm";
 
-  let TWEAK = new Uint32Array(memory, 0, 6);
-  let C = new Uint32Array(memory, 4 * 6, 18);
-  let BUFF = new Uint8Array(memory, 4 * 6 + 4 * 18, 64);
+  const HEAP8 = new stdlib.Uint8Array(memory);
+  const HEAP32 = new stdlib.Uint32Array(memory);
 
-  let X = new Uint32Array(16);
-  let T = new Uint32Array(16);
+  // The tweak array.  This is an array of settings describing the current
+  // block and its position in the stream.  A 3 word long array of 64 bit
+  // integers.
+  const TWEAK = 0;
+  // The accumulator array.  This stores the state that is updated by with each
+  // block.  A nine word long array of 64 bit integers.  The first eight words
+  // are returned as the result of the hash operation.
+  const C = (8 * 3);
+  // The input buffer.  This is a 64 byte long byte array.
+  const BUFF = (8 * 3) + (8 * 9);
 
-  let stack = new Uint32Array(16);
-  let stackPointer = stack.length;
+  // Intermediate arrays, each containing 8 64 bit numbers.
+  const X = (8 * 3) + (8 * 9) + 64;
+  const T = (8 * 3) + (8 * 9) + 64 + (8 * 8);
+
+  const STACK = (8 * 3) + (8 * 9) + 64 + (8 * 8) + (8 * 8);
+  let STACK_POINTER = 0;
 
   // Loads its two arguments as the high and low 32 bits of a new entry at the
   // top of the stack.
   function ldi(h, l) {
-    stackPointer -= 2;
-    stack[stackPointer] = h;
-    stack[stackPointer + 1] = l;
+    STACK_POINTER += 2;
+    HEAP32[(STACK / 4) + STACK_POINTER] = h;
+    HEAP32[(STACK / 4) + STACK_POINTER + 1] = l;
   }
 
   // Returns the high 32 bits of the 64 bit value at the top of the stack.
   function peekh() {
-    return stack[stackPointer];
+    return HEAP32[(STACK / 4) + STACK_POINTER];
   }
 
   // Returns the low 32 bits of the 64 bit value at the top of the stack.
   function peekl() {
-    return stack[stackPointer + 1];
+    return HEAP32[(STACK / 4) + STACK_POINTER + 1];
   }
 
   // Push the 64 bit value at offset `i` in buffer `b` to the top of the stack
   function ldb(b, i) {
-    ldi(b[2 * i], b[(2 * i) + 1]);
+    ldi(
+      HEAP32[b / 4 + 2 * i],
+      HEAP32[b / 4 + 2 * i + 1],
+    );
   }
 
   // Pop the 64 bit value at the top of the stack and save it at offset `i` in
   // the buffer pointed to by `b`.
   function stb(b, i) {
     let h = peekh(), l = peekl(); pop();
-    b[2 * i] = h
-    b[(2 * i) + 1] = l
+    HEAP32[b / 4 + 2 * i] = h
+    HEAP32[b / 4 + 2 * i + 1] = l
   }
 
   // Discards the value that is currently at the top of the stack.
   function pop() {
-    stackPointer += 2;
+    STACK_POINTER -= 2;
   }
 
   // Replaces the value at the top of the stack with the same value shifted left
@@ -100,8 +114,13 @@ function asm(stdlib, foreign, memory) {
       38, 30, 50, 53, 48, 31, 43, 20, 34, 14, 15, 27, 26, 7, 58, 12,
       33, 49, 8, 42, 39, 14, 41, 27, 29, 26, 11, 9, 33, 35, 39, 51
     ];
-    X.fill(0);
-    T.fill(0);
+
+    // Zero out the X and T arrays.
+    for (let i = 0; i < 8; i++) {
+      ldi(0, 0); stb(X, i);
+      ldi(0, 0); stb(T, i);
+    }
+
     ldi(0x55555555, 0x55555555); stb(C, 8);
     for (let i = 0; i < 8; i++) {
       for (let j = 7, k = i * 8 + 7; j >= 0; j--, k--) {
@@ -109,7 +128,7 @@ function asm(stdlib, foreign, memory) {
 
         ldb(T, i);
         let h = peekh(), l = peekl(); pop();
-        l |= BUFF[k] & 0xff
+        l |= HEAP8[BUFF + k] & 0xff
         ldi(h, l); stb(T, i);
       }
       ldb(T, i); ldb(C, i); add(); stb(X, i);
@@ -155,7 +174,10 @@ function asm(stdlib, foreign, memory) {
 }
 
 export function hashBytes(bytes) {
-  let stdlib = {}
+  let stdlib = {
+    Uint8Array: Uint8Array,
+    Uint32Array: Uint32Array,
+  }
   let foreign = []
   let memory = new ArrayBuffer(0x100000);
 
