@@ -1,5 +1,7 @@
 function asm(stdlib, foreign, memory) {
   "use asm";
+  
+  const imul = stdlib.Math.imul;
 
   const HEAP8 = new stdlib.Uint8Array(memory);
   const HEAP32 = new stdlib.Uint32Array(memory);
@@ -127,57 +129,61 @@ function asm(stdlib, foreign, memory) {
   }
 
   function block() {
-
+    let i = 0, j = 0, k = 0;
+    let l = 0, h = 0;
+    let round = 0, p = 0;
+    let m = 0, n = 0, r = 0;
 
     // Zero out the X and T arrays.
-    for (let i = 0; i < 8; i++) {
+    for (i = 0; (i | 0) < (8 | 0); i = i + 1 | 0) {
       ldi(0, 0); stb(X, i);
       ldi(0, 0); stb(T, i);
     }
 
     ldi(0x55555555, 0x55555555); stb(C, 8);
-    for (let i = 0; i < 8; i++) {
-      for (let j = 7, k = i * 8 + 7; j >= 0; j--, k--) {
+    for (i = 0; (i | 0) < (8 | 0); i = i + 1 | 0) {
+      k = (i * 8) | 0;
+      for (j = 7; (j | 0) >= (0 | 0); j = j - 1 | 0) {
         ldb(T, i); shl(8); stb(T, i);
 
         ldb(T, i);
-        let h = peekh(), l = peekl(); pop();
-        l |= HEAP8[BUFF + k] & 0xff
+        h = peekh() | 0; l = peekl() | 0; pop();
+        l = l | HEAP8[BUFF + k + j | 0] & 0xff;
         ldi(h, l); stb(T, i);
       }
       ldb(T, i); ldb(C, i); add(); stb(X, i);
-      ldb(C, 8), ldb(C, i); xor(); stb(C, 8);
+      ldb(C, 8); ldb(C, i); xor(); stb(C, 8);
     }
 
     ldb(X, 5); ldb(TWEAK, 0); add(); stb(X, 5);
     ldb(X, 6); ldb(TWEAK, 1); add(); stb(X, 6);
     ldb(TWEAK, 0); ldb(TWEAK, 1); xor(); stb(TWEAK, 2)
 
-    for (let round = 1; round <= 18; round++) {
-      let p = 16 - ((round & 1) << 4);
-      for (let i = 0; i < 16; i++) {
+    for (round = 1; (round | 0) <= (18 | 0); round = round + 1 |0) {
+      p = 16 - ((round & 1) << 4) | 0;
+      for (i = 0; (i | 0) < (16 | 0); i = i + 1 | 0) {
         // m: 0, 2, 4, 6, 2, 0, 6, 4, 4, 6, 0, 2, 6, 4, 2, 0
-        let m = 2 * ((i + (1 + i + i) * (i >> 2)) & 3);
-        let n = (1 + i + i) & 7;
-        let r = HEAP8[R + p + i];
+        m = imul(2, (i + imul(1 + i + i, i >> 2) | 0) & 3);
+        n = (1 + i + i) & 7;
+        r = HEAP8[R + p + i | 0] | 0;
 
         ldb(X, m); ldb(X, n); add(); stb(X, m);
 
         ldb(X, n); shl(r);
-        ldb(X, n); shr(64 - r);
+        ldb(X, n); shr(64 - r | 0);
         xor(); stb(X, n);
 
         ldb(X, n); ldb(X, m); xor(); stb(X, n);
       }
-      for (var i = 0; i < 8; i++)  {
-        ldb(X, i); ldb(C, (round + i) % 9); add(); stb(X, i);
+      for (i = 0; (i | 0) < (8 | 0); i = i + 1 | 0)  {
+        ldb(X, i); ldb(C, (round + i | 0) % 9 | 0); add(); stb(X, i);
       }
 
-      ldb(X, 5); ldb(TWEAK, round % 3); add(); stb(X, 5);
-      ldb(X, 6); ldb(TWEAK, (round + 1) % 3); add(); stb(X, 6);
+      ldb(X, 5); ldb(TWEAK, (round | 0) % 3 | 0); add(); stb(X, 5);
+      ldb(X, 6); ldb(TWEAK, (round + 1 | 0) % 3 | 0); add(); stb(X, 6);
       ldb(X, 7); ldi(0, round); add(); stb(X, 7);
     }
-    for (let i = 0; i < 8; i++) {
+    for (i = 0; (i | 0) < (8 | 0); i = i + 1 | 0) {
       ldb(T, i); ldb(X, i); xor(); stb(C, i);
     }
   }
@@ -189,6 +195,7 @@ function asm(stdlib, foreign, memory) {
 
 export function hashBytes(bytes) {
   let stdlib = {
+    Math: Math,
     Uint8Array: Uint8Array,
     Uint32Array: Uint32Array,
   }
