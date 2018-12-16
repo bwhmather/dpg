@@ -9,7 +9,9 @@
     "type": "git",
     "url": "git://github.com/bwhmather/dpg.git"
   },
-  "dependencies": {},
+  "dependencies": {
+    "bdc": "0.0.7"
+  },
   "devDependencies": {
     "rollup": "^0.68.0",
     "rollup-plugin-node-resolve": "^4.0.0",

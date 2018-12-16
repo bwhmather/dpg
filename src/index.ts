@@ -1,4 +1,4 @@
-import { h, render } from "./vdom";
+import { h, render } from "bdc";
 
 
 export function run($root) {
