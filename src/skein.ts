@@ -244,7 +244,7 @@ export function hashBytes(bytes) {
     hash.push((c[i + 1] >> 16) & 0xff);
     hash.push((c[i + 1] >> 24) & 0xff);
     hash.push((c[i] >> 0) & 0xff);
-    hash.push((c[i] >> 6) & 0xff);
+    hash.push((c[i] >> 8) & 0xff);
     hash.push((c[i] >> 16) & 0xff);
     hash.push((c[i] >> 24) & 0xff);
   }
