@@ -1,6 +1,8 @@
+// tslint:disable:no-bitwise
+// tslint:disable:one-variable-per-declaration
 function asm(stdlib, foreign, memory) {
   "use asm";
-  
+
   const imul = stdlib.Math.imul;
 
   const HEAP8 = new stdlib.Uint8Array(memory);
@@ -13,16 +15,16 @@ function asm(stdlib, foreign, memory) {
   // The accumulator array.  This stores the state that is updated by with each
   // block.  A nine word long array of 64 bit integers.  The first eight words
   // are returned as the result of the hash operation.
-  const C = 24  // (8 * 3);
+  const C = 24;  // (8 * 3);
   // The input buffer.  This is a 64 byte long byte array.
-  const BUFF = 96  // (8 * 3) + (8 * 9);
-  const R = 160 // (8 * 3) + (8 * 9) + 64;
+  const BUFF = 96;  // (8 * 3) + (8 * 9);
+  const R = 160; // (8 * 3) + (8 * 9) + 64;
 
   // Intermediate arrays, each containing 8 64 bit numbers.
-  const X = 192  // (8 * 3) + (8 * 9) + 64 + 32;
-  const T = 256  // (8 * 3) + (8 * 9) + 64 + 32 + (8 * 8);
+  const X = 192;  // (8 * 3) + (8 * 9) + 64 + 32;
+  const T = 256;  // (8 * 3) + (8 * 9) + 64 + 32 + (8 * 8);
 
-  let STACK = 320  // (8 * 3) + (8 * 9) + 64 + (8 * 8) + (8 * 8);
+  let STACK = 320;  // (8 * 3) + (8 * 9) + 64 + (8 * 8) + (8 * 8);
 
   // Loads its two arguments as the high and low 32 bits of a new entry at the
   // top of the stack.
@@ -65,8 +67,8 @@ function asm(stdlib, foreign, memory) {
     let h = 0, l = 0;
     h = peekh() | 0; l = peekl() | 0; pop();
 
-    HEAP32[b + (8 * i | 0) >> 2] = h
-    HEAP32[b + (8 * i | 0) + 4 >> 2] = l
+    HEAP32[b + (8 * i | 0) >> 2] = h;
+    HEAP32[b + (8 * i | 0) + 4 >> 2] = l;
   }
 
   // Discards the value that is currently at the top of the stack.
@@ -82,8 +84,11 @@ function asm(stdlib, foreign, memory) {
     let h = 0, l = 0;
     h = peekh() | 0; l = peekl() | 0; pop();
 
-    if ((n | 0) >= (32 | 0)) ldi(l << (n - 32), 0)
-    else ldi((h << n) | (l >>> (32 - n)), l << n);
+    if ((n | 0) >= (32 | 0)) {
+      ldi(l << (n - 32), 0);
+    } else {
+      ldi((h << n) | (l >>> (32 - n)), l << n);
+    }
   }
 
   // Replaces the value at the top of the stack with the same value shifted right
@@ -94,8 +99,11 @@ function asm(stdlib, foreign, memory) {
     let h = 0, l = 0;
     h = peekh() | 0; l = peekl() | 0; pop();
 
-    if ((n | 0) >= (32 | 0)) ldi(0, h >>> (n - 32))
-    else ldi(h >>> n, (h << (32 - n)) | (l >>> n));
+    if ((n | 0) >= (32 | 0)) {
+      ldi(0, h >>> (n - 32));
+    } else {
+      ldi(h >>> n, (h << (32 - n)) | (l >>> n));
+    }
   }
 
   // Pops the top two 64 bit values from the top of the stack and adds them,
@@ -157,9 +165,9 @@ function asm(stdlib, foreign, memory) {
 
     ldb(X, 5); ldb(TWEAK, 0); add(); stb(X, 5);
     ldb(X, 6); ldb(TWEAK, 1); add(); stb(X, 6);
-    ldb(TWEAK, 0); ldb(TWEAK, 1); xor(); stb(TWEAK, 2)
+    ldb(TWEAK, 0); ldb(TWEAK, 1); xor(); stb(TWEAK, 2);
 
-    for (round = 1; (round | 0) <= (18 | 0); round = round + 1 |0) {
+    for (round = 1; (round | 0) <= (18 | 0); round = round + 1 | 0) {
       p = 16 - ((round & 1) << 4) | 0;
       for (i = 0; (i | 0) < (16 | 0); i = i + 1 | 0) {
         // m: 0, 2, 4, 6, 2, 0, 6, 4, 4, 6, 0, 2, 6, 4, 2, 0
@@ -189,30 +197,30 @@ function asm(stdlib, foreign, memory) {
   }
 
   return {
-    block: block,
-  }
+    block,
+  };
 }
 
 export function hashBytes(bytes) {
-  let stdlib = {
-    Math: Math,
-    Uint8Array: Uint8Array,
-    Uint32Array: Uint32Array,
-  }
-  let foreign = []
-  let memory = new ArrayBuffer(0x100000);
+  const stdlib = {
+    Math,
+    Uint32Array,
+    Uint8Array,
+  };
+  const foreign = [];
+  const memory = new ArrayBuffer(0x100000);
 
-  let tweak = new Uint32Array(memory, 0, 6);
-  let c = new Uint32Array(memory, 4 * 6, 18);
-  let buff = new Uint8Array(memory, 4 * 6 + 4 * 18, 64);
-  let r = new Uint8Array(memory, 4 * 6 + 4 * 18 + 64, 32);
+  const tweak = new Uint32Array(memory, 0, 6);
+  const c = new Uint32Array(memory, 4 * 6, 18);
+  const buff = new Uint8Array(memory, 4 * 6 + 4 * 18, 64);
+  const r = new Uint8Array(memory, 4 * 6 + 4 * 18 + 64, 32);
 
-  let mod = asm(stdlib, foreign, memory)
+  const mod = asm(stdlib, foreign, memory);
 
   // Deprecated constants from original submission.
   r.set([
     38, 30, 50, 53, 48, 31, 43, 20, 34, 14, 15, 27, 26, 7, 58, 12,
-    33, 49, 8, 42, 39, 14, 41, 27, 29, 26, 11, 9, 33, 35, 39, 51
+    33, 49, 8, 42, 39, 14, 41, 27, 29, 26, 11, 9, 33, 35, 39, 51,
   ]);
 
   tweak.set([0, 32, (0x80 + 0x40 + 0x4) << 24, 0, 0, 0]);
@@ -220,24 +228,25 @@ export function hashBytes(bytes) {
   mod.block();
 
   tweak.set([0, 0, (0x40 + 0x30) << 24, 0, 0, 0]);
-  let len = bytes.length, pos = 0;
-  for(; len > 64; len -= 64, pos += 64) {
+  let len = bytes.length;
+  let pos = 0;
+  for (; len > 64; len -= 64, pos += 64) {
     tweak[1] += 64;
-    buff.set(bytes.subarray(pos, pos + 64))
+    buff.set(bytes.subarray(pos, pos + 64));
     mod.block();
     tweak[2] = 0x30 << 24;
   }
 
   tweak[1] += len; tweak[2] |= 0x80 << 24;
   buff.fill(0);
-  buff.set(bytes.subarray(pos, pos + 64))
+  buff.set(bytes.subarray(pos, pos + 64));
   mod.block();
 
   tweak[1] = 8; tweak[2] = (0x80 + 0x40 + 0x3f) << 24;
   buff.fill(0);
   mod.block();
 
-  let hash = [];
+  const hash = [];
   for (let i = 0; i < 16; i += 2) {
     hash.push((c[i + 1] >> 0) & 0xff);
     hash.push((c[i + 1] >> 8) & 0xff);
