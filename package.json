@@ -10,7 +10,7 @@
     "url": "git://github.com/bwhmather/dpg.git"
   },
   "dependencies": {
-    "bdc": "0.0.7"
+    "bdc": "0.1.0"
   },
   "devDependencies": {
     "rollup": "^1.15.4",

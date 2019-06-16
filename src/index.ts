@@ -1,4 +1,4 @@
-import { h, render } from "bdc";
+import { h, clobber } from "bdc";
 
 
 export function run($root) {
@@ -152,7 +152,7 @@ export function run($root) {
     );
   }
 
-  function renderDpg() {
+  function render() {
     return h("div", {},
       renderDetails(),
       renderOutput(),
@@ -166,7 +166,7 @@ export function run($root) {
       redrawQueued = true;
       window.requestAnimationFrame(() => {
         redrawQueued = false;
-        render($root, renderDpg())
+        clobber($root, render())
       });
     }
   }
