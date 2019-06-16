@@ -1,15 +1,14 @@
-import { h, clobber } from "bdc";
-
+import { clobber, h } from "bdc";
 
 export function run($root) {
   /*** State ***/
-  let details = {
+  const details = {
     hostname: null,
     username: null,
     password: null,
   };
 
-  let settings = {
+  const settings = {
     outputLength: 16,
     enableLowercase: true,
     enableUppercase: true,
@@ -17,14 +16,14 @@ export function run($root) {
     enableSymbols: true,
   };
 
-  let output = {
+  const output = {
     password: null,
   };
 
   function recalc() {
     output.password = null;
 
-    let worker = new Worker('./dist/worker.js');
+    const worker = new Worker("./dist/worker.js");
 
     worker.onmessage = (msg) => {
       output.password = msg.data;
@@ -36,7 +35,6 @@ export function run($root) {
       settings: settings,
     });
   }
-
 
   /*** Rendering ***/
   function input(label, attrs) {
@@ -166,7 +164,7 @@ export function run($root) {
       redrawQueued = true;
       window.requestAnimationFrame(() => {
         redrawQueued = false;
-        clobber($root, render())
+        clobber($root, render());
       });
     }
   }
