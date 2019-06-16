@@ -91,8 +91,8 @@ function asm(stdlib, foreign, memory) {
     }
   }
 
-  // Replaces the value at the top of the stack with the same value shifted right
-  // by `n` bits.
+  // Replaces the value at the top of the stack with the same value shifted
+  // right by `n` bits.
   function shr(n) {
     n = n | 0;
 
@@ -197,15 +197,15 @@ function asm(stdlib, foreign, memory) {
   }
 
   return {
-    block,
+    block: block,
   };
 }
 
 export function hashBytes(bytes) {
   const stdlib = {
-    Math,
-    Uint32Array,
-    Uint8Array,
+    Math: Math,
+    Uint8Array: Uint8Array,
+    Uint32Array: Uint32Array,
   };
   const foreign = [];
   const memory = new ArrayBuffer(0x100000);
